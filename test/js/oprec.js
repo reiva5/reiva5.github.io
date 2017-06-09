@@ -1,16 +1,16 @@
 // JavaScript Document
 $(function(){
   var division = [
-    'Relasi Tahap Persiapan Bersama',
-    'Relasi S1 ITB Ganesha',
-    'Relasi ITB Jatinangor',
-    'Relasi ITB Cirebon',
-    'Relasi Pascasarjana dan Hubungan Masyarakat',
-    'Publikasi Dalam Jaringan',
-    'Publikasi Luar Jaringan',
-    'Kreasi Visual',
-    'Kajian Strategis',
-    'Analisis Data dan Aspirasi'
+    'Acara',
+    'Fundraising',
+    'Internal',
+    'Kewilayahan'
+    'Kreatif',
+    'Manajemen Sumber Daya Manusia',
+    'Materi dan Metode',
+    'Operasional',
+    'Perizinan',
+    'Publikasi',
   ];
 
   var divisionItemTemplate=
