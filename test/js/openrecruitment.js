@@ -10,7 +10,7 @@ $(function(){
     'Kreatif',
     'Manajemen Sumber Daya Anggota'
     'Materi dan Metode',
-    'Operasional',
+    'Operasional'
   ];
 	
   $(window).scroll(function() {
