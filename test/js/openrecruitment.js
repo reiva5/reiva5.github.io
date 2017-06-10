@@ -2,11 +2,11 @@
 
 $(function(){
   var division = [
-    'Relasi Tahap Persiapan Bersama',
-    'Relasi S1 ITB Ganesha',
-    'Relasi Jatinangor',
-    'Relasi Pascasarjana dan Humas',
-    'Publikasi Dalam Jaringan',
+    'Jehian',
+    'Nomor',
+    'Kok',
+    'Wkwkwk',
+    'ssst',
     'Publikasi Luar Jaringan',
     'Kreasi Visual',
     'Kajian Strategis',
