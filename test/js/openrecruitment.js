@@ -8,7 +8,7 @@ $(function(){
     'Internal',
     'Kewilayahan',
     'Kreatif',
-    'Manajemen Sumber Daya Anggota'
+    'Manajemen Sumber Daya Anggota',
     'Materi dan Metode',
     'Operasional'
   ];
