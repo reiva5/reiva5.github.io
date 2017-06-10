@@ -2,16 +2,15 @@
 
 $(function(){
   var division = [
-    'Jehian',
-    'Nomor',
-    'Kok',
-    'Wkwkwk',
-    'ssst',
-    'Publikasi Luar Jaringan',
-    'Kreasi Visual',
-    'Kajian Strategis',
-    'Analisis Data dan Aspirasi',
-	'Manajemen Sumber Daya Anggota'
+    'Acara',
+    'Fundraising',
+    'Humas dan Perizinan',
+    'Internal',
+    'Kewilayahan',
+    'Kreatif',
+    'Manajemen Sumber Daya Anggota'
+    'Materi dan Metode',
+    'Operasional',
   ];
 	
   $(window).scroll(function() {
@@ -123,31 +122,34 @@ $(function(){
     var parent = $('#belum-diisi');
     parent.html('<ol></ol>');
 
-    if($('#name').val()==""){
+    if ($('#name').val() == ""){
       parent.find('ol').append('<li>Nama lengkap Anda</li>');
       valid = false;
     }
-    if($('#nim').val()==""){
+    
+    if ($('#nim').val() == "" || ($('#nim').val()[0] != '1' || $('#nim').val().length != 8)){
       parent.find('ol').append('<li>NIM Anda</li>');
       valid = false;
     }
-    if($('#tempatLahir').val()=="" || $('#tanggalLahir').val()==""){
+
+    if ($('#tempatLahir').val() == "" || $('#tanggalLahir').val() == ""){
       parent.find('ol').append('<li>Tempat tanggal lahir Anda</li>');
       valid = false;
     }
-    if($('#nomorTelepon').val()==""){
+    
+    if ($('#nomorTelepon').val() == "" || ($('#nomorTelepon').val()[0] != '\'') ){
       parent.find('ol').append('<li>Nomor telepon Anda</li>');
       valid = false;
     }
-    if($('#email').val()==""){
+    if($('#email').val() == ""){
       parent.find('ol').append('<li>Alamat email Anda</li>');
       valid = false;
     }
-    if($('#idLine').val()==""){
+    if($('#idLine').val() == ""){
       parent.find('ol').append('<li>ID Line Anda</li>');
       valid = false;
     }
-    if(($('#noDarurat').val()=="") || ($('#pihakDarurat').val()=="")){
+    if(($('#noDarurat').val() == "") || ($('#pihakDarurat').val() == "") || ($('#noDarurat').val()[0] != '\'') ){
       parent.find('ol').append('<li>Kontak darurat</li>');
       valid = false;
     }
@@ -173,14 +175,6 @@ $(function(){
     }
     if($('#kesibukan').val()==""){
       parent.find('ol').append('<li>Kesibukan Anda setahun mendatang</li>');
-      valid = false;
-    }
-    if($('#tentangmwawm').val()==""){
-      parent.find('ol').append('<li>Apa yang Anda ketahui tentang MWA WM</li>');
-      valid = false;
-    }
-    if($('#tentangdiri').val()==""){
-      parent.find('ol').append('<li>Tentang diri Anda</li>');
       valid = false;
     }
 
@@ -228,15 +222,12 @@ $(function(){
 	  $('#emergency-review').html($('#noDarurat').val()+" ("+$('#pihakDarurat').val()+")");
 	  $('#alamat-review').html($("#alamat").val());
 	  $('#kendaraan-review').html($("#kendaraan").val());
-    $('#penyakit-review').html($("#penyakit").val());
 	  $('#keahlian-review').html($("#keahlian").val());
 	  $('#organisasi-review').html($("#organisasi").val());
 	  $('#kepanitiaan-review').html($("#kepanitiaan").val());
 	  $('#kesibukan-review').html($("#kesibukan").val());
 	  
 	  //MBTI
-	  $('#tentangmwawm-review').html($('#tentangmwawm').val());
-	  $('#tentangdiri-review').html($('#tentangdiri').val());
 	  //talentoday.com
 	  
 	  //division
@@ -255,27 +246,26 @@ $(function(){
   var formKey = "e/1FAIpQLSeqprEkjYE1oS5Wpi_sNvtZOD_tc1J-yPEZRjp3w411le5r2Q";
 	
   var formEntries = {
-	  nama: "entry.1839260254",
-	  nim: "entry.1654309158",
-	  tempatlahir: "entry.885649470",
-	  tanggallahir: "entry.523073533",
-	  notelp: "entry.1402243068",
-	  notelpdarurat: "entry.1855563413",
-	  pemilikdarurat: "entry.1429309956",
-	  email: "entry.1156103119",
-	  alamat: "entry.1736388662",
-	  idline: "entry.1203344181",
-	  penyakit: "entry.1325252122",
-	  kendaraan: "entry.758369097",
-	  keahlian: "entry.1916409383",
-	  organisasi: "entry.1789619131",
-	  kepanitiaan: "entry.1183517718",
-	  kesibukan: "entry.1333077773",
+	  nama: "entry.1988027640", //done
+	  nim: "entry.994926422", //done
+	  tempatlahir: "entry.2012187542", //done
+	  tanggallahir: "entry.609900518", //done
+	  notelp: "entry.1899955254", //done
+	  notelpdarurat: "entry.227148534", //done
+	  pemilikdarurat: "entry.2106897865", //done
+	  email: "entry.82887629", //done
+	  alamat: "entry.1761637625", //done
+	  idline: "entry.1047972670", //done
+	  kendaraan: "entry.736347967", //done
+	  keahlian: "entry.1103552589", //done
+	  organisasi: "entry.249067437", //done
+	  kepanitiaan: "entry.665222541", //done
+	  kesibukan: "entry.1056663973", //done
 	  
 	  divisi:[
-		"entry.2100413130",
-		"entry.772961315",
-		"entry.907878507",
+		"entry.569840745",    //Pilihan 1
+		"entry.1626400103",   //Pilihan 2
+		"entry.1335677820"    //Pilihan 3
 		// "entry.141231101",//4
 		// "entry.1918773200",
 		// "entry.1139148372",
@@ -287,20 +277,14 @@ $(function(){
 	  ],
 	  
 	  alasan:[
-		"entry.264803696",
-		"entry.93929055",
-		"entry.768048502"
-	  ],
-	  
-	  tentangmwawm: "entry.1086493230",
-	  
-	  tentangdiri: "entry.1814451636",
-		
+		"entry.890713090",    //Alasan 1
+		"entry.1831067473",   //Alasan 2
+		"entry.1637086199"    //Alasan 3
+	  ],		
   };
- // https://docs.google.com/forms/d/e/1FAIpQLSeqprEkjYE1oS5Wpi_sNvtZOD_tc1J-yPEZRjp3w411le5r2Q/viewform?usp=sf_link
-  //https://docs.google.com/forms/d/e/1FAIpQLScbzFTN7q93MLpTeN3aPizpSlvyvGCJjvnKMxcT_R9I7gaPxw/viewform?usp=sf_link
+
   $('#real-submit-button').click(function(){
-	  var url = "https://docs.google.com/forms/d/e/1FAIpQLSeqprEkjYE1oS5Wpi_sNvtZOD_tc1J-yPEZRjp3w411le5r2Q/formResponse";
+	  var url = "https://docs.google.com/a/std.stei.itb.ac.id/forms/d/e/1FAIpQLSciy2r_VurxAEwt4E85w78wKVsyAGZw6Q_q4qWdAzuwx63xpA/formResponse";
     
     var form = $('#main-form');
     form.attr('action', url);
@@ -316,7 +300,6 @@ $(function(){
       form.append('<input type="text" name="' + formEntries.email + '" value="' + $('#email').val() + '">');
       form.append('<input type="text" name="' + formEntries.alamat + '" value="' + $('#alamat').val() + '">');
       form.append('<input type="text" name="' + formEntries.idline + '" value="' + $('#idLine').val() + '">');
-      form.append('<input type="text" name="' + formEntries.penyakit + '" value="' + $('#penyakit').val() + '">');
       form.append('<input type="text" name="' + formEntries.kendaraan + '" value="' + $('#kendaraan').val() + '">');
       form.append('<input type="text" name="' + formEntries.keahlian + '" value="' + $('#keahlian').val() + '">');
       form.append('<input type="text" name="' + formEntries.organisasi + '" value="' + $('#organisasi').val() + '">');
@@ -330,10 +313,6 @@ $(function(){
       for (i = 1; i <= 3; ++i) {
             form.append('<input type="text" name="' + formEntries.alasan[i-1] + '" value="' + $('#reason' + i).val() + '">');
       }
-      form.append('<input type="text" name="' + formEntries.tentangmwawm + '" value="' + $('#tentangmwawm').val() + '">');
-
-      form.append('<input type="text" name="' + formEntries.tentangdiri + '" value="' + $('#tentangdiri').val() + '">');
-
       form.submit();    
       console.log("5");
   });
