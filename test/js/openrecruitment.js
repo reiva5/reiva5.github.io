@@ -60,6 +60,7 @@ $(function(){
 
   initializePool();
 
+  /* Credit to Joshua Atmadja */
    function shuffle(){
         for(i = 1;i <= 100; ++i){
             var x = Math.floor(Math.random() * i) % division.length;
@@ -243,7 +244,7 @@ $(function(){
         }
   }
 
-  var formKey = "e/1FAIpQLSeqprEkjYE1oS5Wpi_sNvtZOD_tc1J-yPEZRjp3w411le5r2Q";
+  var formKey = "e/1FAIpQLSciy2r_VurxAEwt4E85w78wKVsyAGZw6Q_q4qWdAzuwx63xpA/";
 	
   var formEntries = {
 	  nama: "entry.1988027640", //done
