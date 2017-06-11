@@ -71,8 +71,8 @@
 					<label for="name" data-error="Field harus diisi">Nama Lengkap</label>
 				</div>
 				<div class="input-field col s12 m6">
-					<input required="" aria-required="true" class="validate" id="nim" name="nim" type="text">
-					<label for="nim" data-error="Field harus diisi">NIM</label>
+					<input required="" aria-required="true" class="validate" id="nim" name="nim" type="text" pattern="[1]([0-9]{2})[1][7]([0-9]{3})">
+					<label for="nim" data-error="Format NIM tidak valid, contoh NIM valid: 13517XXX">NIM</label>
 				</div>
 				<div class="input-field col s12 m6">
 					<input required="" aria-required="true" class="validate" id="tempatLahir" name="tempatLahir" type="text">
@@ -83,7 +83,7 @@
 					<label for="tanggalLahir" data-error="Field harus diisi">Tanggal Lahir</label>
 				</div>
 				<div class="input-field col s12 m6">
-					<input required="" aria-required="true" class="validate" id="nomorTelepon" name="nomorTelepon" type="text" pattern="['][0-9]{2,15}">
+					<input required="" aria-required="true" class="validate" id="nomorTelepon" name="nomorTelepon" type="text" pattern="[']([0-9]{2,15})">
 					<label for="nomorTelepon" data-error="Field harus diisi dengan awalan tanda kutip 1 (') dan tidak boleh kosong">Nomor HP</label>
 				</div>
 				<div class="input-field col s12 m6">
@@ -99,7 +99,7 @@
 					<label for="idLine" data-error="Field harus diisi">ID LINE</label>
 				</div>
 				<div class="input-field col s12 m4">
-					<input required="" aria-required="true" class="validate" id="noDarurat" name="noDarurat" type="text">
+					<input required="" aria-required="true" class="validate" id="noDarurat" name="noDarurat" type="text" pattern="['][0-9]{2,15}">
 					<label for="noDarurat" data-error="Field harus diisi">Nomor Telepon Darurat</label>
 				</div>
 				<div class="input-field col s12 m4">
