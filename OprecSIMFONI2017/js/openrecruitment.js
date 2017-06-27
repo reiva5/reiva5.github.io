@@ -256,8 +256,8 @@ $(function(){
   var formKey = "e/1FAIpQLSciy2r_VurxAEwt4E85w78wKVsyAGZw6Q_q4qWdAzuwx63xpA/";
 	
   var formEntries = {
-	  nama: "entry.1988027640", //done
-	  nim: "entry.994926422", //done
+	  nim: "entry.1988027640", //done
+	  nama: "entry.994926422", //done
 	  tempatlahir: "entry.2012187542", //done
 	  tanggallahir: "entry.609900518", //done
 	  notelp: "entry.1899955254", //done
