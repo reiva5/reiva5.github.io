@@ -2,15 +2,18 @@
 
 $(function(){
   var division = [
-    'Acara',
-    'Fundraising',
-    'Humas dan Perizinan',
-    'Internal',
+    'Donaturial',
+    'Entrepreneur',
+    'Sponsorship',
+    'Perizinan',
+    'Manajemen Ta\'dib',
+    'Kekeluargaan',
     'Kewilayahan',
-    'Kreatif',
-    'Manajemen Sumber Daya Anggota',
-    'Materi dan Metode',
-    'Operasional'
+    'Artistik',
+    'MSDM Panitia',
+    'MSDM Peserta',
+    'Akomodasi dan Konsumsi',
+    'Logistik'
   ];
 	
   $(window).scroll(function() {
