@@ -130,7 +130,7 @@ $(function(){
       parent.find('ol').append('<li>Nama lengkap Anda</li>');
       valid = false;
     }
-    if ($('#nim').val() == "" || ($('#nim').val()[0] != '1' || $('#nim').val().length != 8)){
+    if ($('#nim').val() == ""){
       parent.find('ol').append('<li>NIM Anda</li>');
       valid = false;
     }
