@@ -133,9 +133,6 @@ $(function(){
     if ($('#nim').val() == "" || ($('#nim').val()[0] != '1' || $('#nim').val().length != 8)){
       parent.find('ol').append('<li>NIM Anda</li>');
       valid = false;
-    } else if ($('#nim').val()[0] != '1' || $('#nim').val().length != 8 || $('nim').val()[3] != '1'){
-      parent.find('ol').append('<li>Format penulisan NIM tolong dilihat kembali</li>');
-      valid = false;
     }
     if ($('#tempatLahir').val() == "" || $('#tanggalLahir').val() == ""){
       parent.find('ol').append('<li>Tempat tanggal lahir Anda</li>');
@@ -143,9 +140,6 @@ $(function(){
     }
     if ($('#nomorTelepon').val() == ""){
       parent.find('ol').append('<li>Nomor telepon Anda</li>');
-      valid = false;
-    } else if ($('#nomorTelepon').val()[0] != '\''){
-      parent.find('ol').append('<li>Nomor telepon Anda tidak diawali dengan tanda petik satu</li>');
       valid = false;
     }
     if ($('#email').val() == ""){
@@ -158,9 +152,6 @@ $(function(){
     }
     if (($('#noDarurat').val() == "") || ($('#pihakDarurat').val() == "")){
       parent.find('ol').append('<li>Kontak darurat Anda</li>');
-      valid = false;
-    } else if ($('#noDarurat').val()[0] != '\''){
-      parent.find('ol').append('<li>Format penulisan nomor darurat Anda tidak dialawi tanda petik satu</li>');
       valid = false;
     }
     if ($('#alamat').val()==""){
