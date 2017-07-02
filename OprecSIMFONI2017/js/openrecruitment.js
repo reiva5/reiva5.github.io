@@ -2,6 +2,7 @@
 
 $(function(){
   var division = [
+  	'Acara',
     'Donaturial',
     'Entrepreneur',
     'Sponsorship',
@@ -10,6 +11,9 @@ $(function(){
     'Kekeluargaan',
     'Kewilayahan',
     'Artistik',
+    'Dokumentasi',
+    'Grafis',
+    'Publikasi',
     'MSDM Panitia',
     'MSDM Peserta',
     'Akomodasi dan Konsumsi',
