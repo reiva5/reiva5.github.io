@@ -9,7 +9,7 @@ $(function(){
     'Perizinan',
 //    'Manajemen Ta\'dib',
 //    'Kekeluargaan',
-    'Kewilayahan (khusus Akhwat)',
+    'Kewilayahan (diutamakan Akhwat)',
     'Artistik',
     'Dokumentasi',
 //    'Grafis',
