@@ -13,7 +13,7 @@ function popupResult(result) {
   }
   if (result.src) {
   	html = '<img src="' + result.src + '" />' +
-    '<a href="'+ result.src +'" id="downloadlink" class="button" download="wisjul17.jpg">Download</a>' +
+    '<a href="'+ result.src +'" id="downloadlink" class="button" download="SSC-12.jpg">Download</a>' +
     '<button class="confirm button" tabindex="1">Cancel</button>';
   }
   swal({
@@ -100,7 +100,7 @@ function downloadCanvas(link, canvasId, filename) {
 }
 
 $('#downloadlink').on('click', '.sweet-alert', function() {
-  downloadCanvas(this, 'imageCanvas', 'wisjul17.jpg');
+  downloadCanvas(this, 'imageCanvas', 'SSC-12.jpg');
 });
 
 
