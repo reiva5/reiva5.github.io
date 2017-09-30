@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>GEMASTIK 9 | Penyisihan Pemrograman</title>
+    <link rel="shortcut icon" href="images/gemastik-logo.png" type="image/x-icon" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="js/scoreboard-penyisihan-resmi.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            fetchScoreboard();
+        });
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="page-header">
+                    <div class="logos pull-right">
+                        <img class="logo" src="images/logo.png" />
+                    </div>
+                    <h1>GEMASTIK 9 | Penyisihan Pemrograman</h1>
+                    <p>Sabtu, 27 Agustus 2016 10.00 - 13.00 WIB</p>
+                    <p><a href="panduan.html"><u>Panduan membaca tabel peringkat</u></a></p>
+                    <div class="clearfix"></div>
+                </div>
+
+                <p>Hasil resmi. Klik <a href="penyisihan.html">di sini</a> untuk melihat hasil yang dibekukan 30 menit terakhir.</p>
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr id="headers">
+                            <th class="col-rank">#</th>
+                            <th style="display: none"></th>
+                            <th style="display: none"></th>
+                            <th style="display: none"></th>
+                            <th class="col-team">Tim</th>
+                            <th class="col-score">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="entries">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
