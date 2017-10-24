@@ -1,1 +1,0 @@
-# simfoni-2017-frame
