@@ -1,2 +1,0 @@
-# domjudge
-Private Online Judge

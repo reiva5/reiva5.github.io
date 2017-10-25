@@ -1,5 +1,0 @@
-% @EXPECTED_RESULTS@: CORRECT
-
-main :-
-	write('Hello world!'),
-	nl.
