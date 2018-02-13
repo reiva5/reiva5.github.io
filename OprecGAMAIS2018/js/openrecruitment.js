@@ -2,22 +2,38 @@
 
 $(function(){
   var division = [
-  	'KESEKJENAN - GAMAIS HOME',
-  	'KESEKJENAN - GAMAIS CORPORATION',
-  	'BKK',
-  	'EKSTERNAL - HUBUNGAN ALUMNI',
-  	'EKSTERNAL - INTRAKAMPUS',
-  	'EKSTERNAL - HUBUNGAN FSLDK',
-  	'EKSTERNAL - EKSTRAKAMPUS',
-  	'PSDM - BKM',
-  	'PSDM - KADERISASI',
-  	'PSDM - MSDK',
-  	'SPDK - SYIAR EVENT',
-  	'SPDK - SYIAR MEDIA',
-  	'SPDK - PELAYANAN',
-  	'ANNISA - ANNISA CARE',
-  	'ANNISA - MEDIA ANNISAA',
-  	'ANNISA - EVENT ANNISAA'
+    'KESEKJENAN - GAMAIS HOME',
+    'KESEKJENAN - GAMAIS CORPORATION',
+    'BKK',
+    'EKSTERNAL - HUBUNGAN ALUMNI',
+    'EKSTERNAL - INTRAKAMPUS',
+    'EKSTERNAL - HUBUNGAN FSLDK',
+    'EKSTERNAL - EKSTRAKAMPUS',
+    'PSDM - BKM',
+    'PSDM - KADERISASI',
+    'PSDM - MSDK',
+    'SPDK - SYIAR EVENT',
+    'SPDK - SYIAR MEDIA',
+    'SPDK - PELAYANAN',
+    'ANNISA - ANNISA CARE',
+    'ANNISA - MEDIA ANNISAA',
+    'ANNISA - EVENT ANNISAA'
+  ];
+
+  var ikhwan_division = [
+    'KESEKJENAN - GAMAIS HOME',
+    'KESEKJENAN - GAMAIS CORPORATION',
+    'BKK',
+    'EKSTERNAL - HUBUNGAN ALUMNI',
+    'EKSTERNAL - INTRAKAMPUS',
+    'EKSTERNAL - HUBUNGAN FSLDK',
+    'EKSTERNAL - EKSTRAKAMPUS',
+    'PSDM - BKM',
+    'PSDM - KADERISASI',
+    'PSDM - MSDK',
+    'SPDK - SYIAR EVENT',
+    'SPDK - SYIAR MEDIA',
+    'SPDK - PELAYANAN'
   ];
 
   $(window).scroll(function() {
@@ -39,31 +55,39 @@ $(function(){
     + '<div class="panel-heading"><span></span></div></div></div>';
 
   $('.datepicker').pickadate({
-  	format:'dd/mm/yyyy',
-	  today: '',
-	  close: 'Set',
-	  selectYears:60,
-	  selectMonths:true
+    format:'dd/mm/yyyy',
+    today: '',
+    close: 'Set',
+    selectYears:60,
+    selectMonths:true
   });
 
-  
   var isShuffled=false;
 
   function initializePool() {
         var pool = $('.division-pool');
-        pool.html('');
+        pool.empty();
         for (i = 0; i < division.length; ++i) {
             var newDivisionItem = $($.parseHTML(divisionItemTemplate));
             newDivisionItem.data('division', division[i]);
             pool.append(newDivisionItem);
         }
-        // append clear to make the well works
         pool.append('<div class="clear"></div>');
     }
-	
+  
+  function initializePoolIkhwan() {
+        var pool = $('.division-pool');
+        pool.empty();
+        for (i = 0; i < ikhwan_division.length; ++i) {
+            var newDivisionItem = $($.parseHTML(divisionItemTemplate));
+            newDivisionItem.data('division', ikhwan_division[i]);
+            pool.append(newDivisionItem);
+        }
+        pool.append('<div class="clear"></div>');
+    }
+
   $('.modal').modal({
-	  dismissible:false,
-	  
+    dismissible:false,
   });
 
   initializePool();
@@ -82,6 +106,19 @@ $(function(){
         isShuffled = true;
     }
 
+
+   function shuffleIkhwan(){
+        for(i = 1;i <= 100; ++i){
+            var x = Math.floor(Math.random() * i) % ikhwan_division.length;
+            var y = Math.floor(Math.random() * (i + 1)) % ikhwan_division.length;
+            var temp = ikhwan_division[x];
+            ikhwan_division[x] = ikhwan_division[y];
+            ikhwan_division[y] = temp;
+        }
+        initializePoolIkhwan();
+        reorderDivisionItem();
+        isShuffled = true;
+    }
     // initially, shuffle the options
     shuffle();
 
@@ -127,19 +164,31 @@ $(function(){
     });
 
     $('#mentoring').on("change", function(){
-    	if ($(this).val() == 'Tidak'){
-    		$('[id=motivational]').show();
-    	} else {
-    		$('[id=motivational]').hide();
-    	}
+      if ($(this).val() == 'Tidak'){
+        $('[id=motivational]').show();
+      } else {
+        $('[id=motivational]').hide();
+      }
     });
 
-	$('#lmd').on("change", function(){
-    	if ($(this).val() == 'Ya'){
-    		$('[id=angkatan-lmd-holder]').show();
-    	} else {
-    		$('[id=angkatan-lmd-holder]').hide();
-    	}
+    $('#jenis-kelamin').on("change", function(){
+      if ($(this).val() == 'Ikhwan'){
+        initializePoolIkhwan();
+        shuffleIkhwan();
+        $('#annisa').hide();
+      } else {
+        initializePool();
+        shuffle();
+        $('#annisa').show();
+      }
+    });
+
+  $('#lmd').on("change", function(){
+      if ($(this).val() == 'Ya'){
+        $('[id=angkatan-lmd-holder]').show();
+      } else {
+        $('[id=angkatan-lmd-holder]').hide();
+      }
     });
 
   function validate(){
@@ -159,7 +208,7 @@ $(function(){
       parent.find('ol').append('<li>Tempat tanggal lahir Anda</li>');
       valid = false;
     }
-    if ($('#nomorTelepon').val() == ""){
+    if ($('#nomorTelepon').val() == "" || ($('#nomorTelepon').val())[0] != "'"){
       parent.find('ol').append('<li>Nomor telepon Anda</li>');
       valid = false;
     }
@@ -175,7 +224,7 @@ $(function(){
       parent.find('ol').append('<li>Akun Facebook Anda</li>');
       valid = false;
     }
-    if (($('#noDarurat').val() == "") || ($('#pihakDarurat').val() == "")){
+    if (($('#noDarurat').val() == "") || ($('#pihakDarurat').val() == "") || ($('#noDarurat').val())[0] != "'"){
       parent.find('ol').append('<li>Kontak darurat Anda</li>');
       valid = false;
     }
@@ -183,7 +232,7 @@ $(function(){
       parent.find('ol').append('<li>Alamat asal Anda</li>');
       valid = false;
     }
-    if ($('#alamat').val()==""){
+    if ($('#alamat').val() == ""){
       parent.find('ol').append('<li>Alamat tinggal Anda di Bandung</li>');
       valid = false;
     }
@@ -191,19 +240,19 @@ $(function(){
       parent.find('ol').append('<li>Angkatan LMD Anda</li>');
       valid = false;
     }
-    if($('#keahlian').val()==""){
+    if($('#keahlian').val() == ""){
       parent.find('ol').append('<li>Keahlian Anda</li>');
       valid = false;
     }
-    if($('#organisasi').val()==""){
+    if($('#organisasi').val() == ""){
       parent.find('ol').append('<li>Pengalaman organisasi Anda</li>');
       valid = false;
     }
-    if($('#kepanitiaan').val()==""){
+    if($('#kepanitiaan').val() == ""){
       parent.find('ol').append('<li>Pengalaman kepanitiaan Anda</li>');
       valid = false;
     }
-    if($('#kesibukan').val()==""){
+    if($('#kesibukan').val() == ""){
       parent.find('ol').append('<li>Kesibukan Anda setahun mendatang</li>');
       valid = false;
     }
@@ -219,122 +268,122 @@ $(function(){
     if(!reasonfilled) parent.find('ol').append('<li>Alasan masuk divisi pilihan Anda</li>');
 
     if(!$('#agree').is(':checked')){
-      parent.append('<span>...dan Anda belum menyetujui pernyataan akhirnya</span>');
+      parent.append('<span>... dan Anda belum menyetujui pernyataan akhirnya .___.</span>');
       valid = false;
     }
     return valid;
   }
-	
+  
   $('.submit-button').click(function(){
     if(validate()){
-  	  fillModal();
-  	  $('#review-modal').modal('open');
+      fillModal();
+      $('#review-modal').modal('open');
     }
     else
       $('#error-modal').modal('open');
   });
-	
+  
   $('#reset-button').click(function(){
-	  $('#review-modal').modal('close');
+    $('#review-modal').modal('close');
   });
-	
+  
    $('#reset-button-2').click(function(){
     $('#error-modal').modal('close');
   });
 
   function fillModal(){
-	  $('#nama-review').html($('#name').val());
-	  $('#nim-review').html($('#nim').val());
-	  $('#ttl-review').html($('#tempatLahir').val()+", "+$('#tanggalLahir').val());
-	  $('#telp-review').html($('#nomorTelepon').val());
-	  $('#email-review').html($("#email").val());
-	  $('#line-review').html($('#idLine').val());
-	  $('#emergency-review').html($('#noDarurat').val()+" ("+$('#pihakDarurat').val()+")");
-	  $('#alamat-review').html($("#alamat").val());
-	  $('#alamat-asal-review').html($("#alamat-asal").val());
-	  $('#kendaraan-review').html($("#kendaraan").val());
-	  $('#keahlian-review').html($("#keahlian").val());
-	  $('#organisasi-review').html($("#organisasi").val());
-	  $('#kepanitiaan-review').html($("#kepanitiaan").val());
-	  $('#kesibukan-review').html($("#kesibukan").val());
-	  $('#lmd-review').html($("#lmd option:selected").val());
-	  $('#jenis-kelamin-review').html($("#jenis-kelamin option:selected").val());
-	  if ($("#lmd option:selected").val() == "Ya"){
-	  	$('#angkatan-lmd-review').html($('#angkatan-lmd').val());
-	  } else {
-	  	$('#angkatan-lmd-review').html('-');
-	  }
-	  $('#mentoring-review').html($("#mentoring option:selected").val());
-	  if ($("#mentoring option:selected").val() == "Ya"){
-	  	$('#mau-mentoring-review').html("Ya");
-	  } else {
-	  	$('#mau-mentoring-review').html($("#mau-mentoring option:selected").val());
-	  }
-	  var order = $('#division-review');
+    $('#nama-review').html($('#name').val());
+    $('#nim-review').html($('#nim').val());
+    $('#ttl-review').html($('#tempatLahir').val()+", "+$('#tanggalLahir').val());
+    $('#telp-review').html($('#nomorTelepon').val());
+    $('#email-review').html($("#email").val());
+    $('#line-review').html($('#idLine').val());
+    $('#emergency-review').html($('#noDarurat').val()+" ("+$('#pihakDarurat').val()+")");
+    $('#alamat-review').html($("#alamat").val());
+    $('#alamat-asal-review').html($("#alamat-asal").val());
+    $('#kendaraan-review').html($("#kendaraan").val());
+    $('#keahlian-review').html($("#keahlian").val());
+    $('#organisasi-review').html($("#organisasi").val());
+    $('#kepanitiaan-review').html($("#kepanitiaan").val());
+    $('#kesibukan-review').html($("#kesibukan").val());
+    $('#lmd-review').html($("#lmd option:selected").val());
+    $('#jenis-kelamin-review').html($("#jenis-kelamin option:selected").val());
+    if ($("#lmd option:selected").val() == "Ya"){
+      $('#angkatan-lmd-review').html($('#angkatan-lmd').val());
+    } else {
+      $('#angkatan-lmd-review').html('-');
+    }
+    $('#mentoring-review').html($("#mentoring option:selected").val());
+    if ($("#mentoring option:selected").val() == "Ya"){
+      $('#mau-mentoring-review').html("Ya");
+    } else {
+      $('#mau-mentoring-review').html($("#mau-mentoring option:selected").val());
+    }
+    var order = $('#division-review');
         order.html('<ol></ol>');
         $('.division-item').each(function(i, e) {
             order.find('ol').append('<li>' + $(e).data('division') + '</li>');
         });
-	  
-	  for (var i = 1; i <= 3; ++i) {
+    
+    for (var i = 1; i <= 3; ++i) {
             $('#reason' + i + '-review').html('<em>'+$('#reason' + i).val()+'</em>');
         }
   }
 
   var formKey = "e/1FAIpQLSckpEbHPeXEFvY0a4hjzfpzkILIsbYc07M3SfvmoYElHmrWQA/";
-	
+  
   var formEntries = {
-	  nim: "entry.1988027640", //done
-	  nama: "entry.994926422", //done
-	  jeniskelamin: "entry.878918289", //done
-	  tempatlahir: "entry.2012187542", //done
-	  tanggallahir: "entry.609900518", //done
-	  notelp: "entry.1899955254", //done
-	  notelpdarurat: "entry.227148534", //done
-	  pemilikdarurat: "entry.2106897865", //done
-	  email: "entry.82887629", //done
-	  alamatasal: "entry.65393724", //done
-	  alamat: "entry.1761637625", //done
-	  idline: "entry.1047972670", //done
-	  facebook: "entry.869454631", //done
-	  keahlian: "entry.1103552589", //done
-	  lmd: "entry.813231201", //done
-	  angkatanlmd: "entry.1601850778", //done
-	  organisasi: "entry.249067437", //done
-	  kepanitiaan: "entry.665222541", //done
-	  kesibukan: "entry.1056663973", //done
-	  
-	  divisi:[
-		"entry.569840745",    //Pilihan 1
-		"entry.1626400103",   //Pilihan 2
-		"entry.1335677820"    //Pilihan 3
-		// "entry.141231101",//4
-		// "entry.1918773200",
-		// "entry.1139148372",
-		// "entry.1422858740",
-		// "entry.412468260",//8
-		// "entry.1041488826",
-		// "entry.101889886",
-		// "entry.1776833333"
-	  ],
-	  
-	  alasan:[
-		"entry.890713090",    //Alasan 1
-		"entry.1831067473",   //Alasan 2
-		"entry.1637086199"    //Alasan 3
-	  ],
+    nim: "entry.1988027640", //done
+    nama: "entry.994926422", //done
+    jeniskelamin: "entry.878918289", //done
+    tempatlahir: "entry.2012187542", //done
+    tanggallahir: "entry.609900518", //done
+    notelp: "entry.1899955254", //done
+    notelpdarurat: "entry.227148534", //done
+    pemilikdarurat: "entry.2106897865", //done
+    email: "entry.82887629", //done
+    alamatasal: "entry.65393724", //done
+    alamat: "entry.1761637625", //done
+    idline: "entry.1047972670", //done
+    facebook: "entry.869454631", //done
+    keahlian: "entry.1103552589", //done
+    lmd: "entry.813231201", //done
+    angkatanlmd: "entry.1601850778", //done
+    organisasi: "entry.249067437", //done
+    kepanitiaan: "entry.665222541", //done
+    kesibukan: "entry.1056663973", //done
+    
+    divisi:[
+    "entry.569840745",    //Pilihan 1
+    "entry.1626400103",   //Pilihan 2
+    "entry.1335677820",    //Pilihan 3
+    "entry.401269615",//4
+    "entry.643437127",
+    "entry.1898537150",
+    "entry.592782793",
+    "entry.2018753858",//8
+    "entry.1700303246"
+    // "entry.101889886",
+    // "entry.1776833333"
+    ],
+    
+    alasan:[
+    "entry.890713090",    //Alasan 1
+    "entry.1831067473",   //Alasan 2
+    "entry.1637086199"    //Alasan 3
+    ],
 
-	  mentoring: "entry.2142692833",
-	  maumentoring: "entry.1989080787",
+    mentoring: "entry.2142692833",
+    maumentoring: "entry.1989080787",
   };
 
   $('#real-submit-button').click(function(){
-	  var url = "https://docs.google.com/a/std.stei.itb.ac.id/forms/d/e/1FAIpQLSckpEbHPeXEFvY0a4hjzfpzkILIsbYc07M3SfvmoYElHmrWQA/formResponse";
+    var url = "https://docs.google.com/a/std.stei.itb.ac.id/forms/d/e/1FAIpQLSckpEbHPeXEFvY0a4hjzfpzkILIsbYc07M3SfvmoYElHmrWQA/formResponse";
     
     var form = $('#main-form');
     form.attr('action', url);
     form.html('');
-	  var tmp;
+    var tmp;
     
     form.append('<input type="text" name="' + formEntries.nim + '" value="' + $('#nim').val() + '">');
       form.append('<input type="text" name="' + formEntries.nama + '" value="' + $('#name').val() + '">');
@@ -351,9 +400,9 @@ $(function(){
       form.append('<input type="text" name="' + formEntries.facebook + '" value="' + $('#facebook').val() + '">');
       form.append('<input type="text" name="' + formEntries.lmd + '" value="' + $('#lmd').val() + '">');
       if ($('#lmd').val() == "Ya"){
-      	tmp = $('#angkatan-lmd').val();
+        tmp = $('#angkatan-lmd').val();
       } else {
-      	tmp = "-";
+        tmp = "-";
       }
       form.append('<input type="text" name="' + formEntries.angkatanlmd + '" value="' + tmp + '">');
       form.append('<input type="text" name="' + formEntries.keahlian + '" value="' + $('#keahlian').val() + '">');
@@ -362,14 +411,14 @@ $(function(){
       form.append('<input type="text" name="' + formEntries.kesibukan + '" value="' + $('#kesibukan').val() + '">');
       form.append('<input type="text" name="' + formEntries.mentoring + '" value="' + $('#mentoring option:selected').val() + '">');
       if ($('#mentoring option:selected').val() == "Ya"){
-      	tmp = "Ya";
+        tmp = "Ya";
       } else {
-      	tmp = $('#mau-mentoring option:selected').val();
+        tmp = $('#mau-mentoring option:selected').val();
       }
       form.append('<input type="text" name="' + formEntries.maumentoring + '" value="' + tmp + '">');
     
       $('.division-item').each(function(i, e) {
-            if(i<3) form.append('<input type="text" name="' + formEntries.divisi[i] + '" value="' + $(e).data('division') + '">');
+            if(i<9) form.append('<input type="text" name="' + formEntries.divisi[i] + '" value="' + $(e).data('division') + '">');
       });
 
       for (i = 1; i <= 3; ++i) {
