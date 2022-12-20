@@ -1,0 +1,155 @@
+@charset "utf-8";
+
+/* CSS Document */
+
+.center{
+	text-align: center;
+}
+
+.top{
+	margin-top: 5rem;
+}
+
+.organogram{
+	height: 50em;
+}
+
+.image-on-top{
+	height: 100%;
+	max-height: 20em;
+}
+.image-ojan{
+	height: 100%;
+	max-height: 30em;
+}
+.image-organogram{
+	height: 100%;
+}
+
+.main_h {
+	position: fixed;
+	max-height: 70px;
+	z-index: 999;
+	width: 100%;
+	padding-top: 17px;
+	background: none;
+	overflow: hidden;
+	-webkit-transition: all 0.3s;
+	transition: all 0.3s;
+	opacity: 0;
+	top: -100px;
+	padding-bottom: 6px;
+	font-size: 18px;
+	left: 20px;
+	font-weight: bold;
+}
+
+.sticky {
+  background-color: rgba(255, 255, 255, 0.93);
+  opacity: 1;
+  top: 0px;
+  border-bottom: 1px solid lighten(#8f8f8f, 30%);
+}
+
+.seen{
+	font-size: 1.5rem;
+}
+
+.text-title{
+	font-size: 4em;
+}
+
+#main{
+	background-color: transparent;
+}
+
+#agree_label{
+	color: black;
+}
+canvas{
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: -1;
+}
+
+.input-field label{
+	color:#004dbb;
+}
+
+
+.division-item {
+    padding: 1px;
+	margin: 3px;
+    text-align: center;
+/*    font-weight: lighter;*/
+    font-size: medium;
+    height: auto;
+	border-radius: 50px;
+	color: #000797;
+	border: solid 3px #000797;
+    /*line-height: 100px;*/
+}
+.division-item .panel-heading {
+    height: 40px;
+    line-height: 60px;
+    display: flex;
+    justify-content: center; /* align horizontal */
+    align-items: center; /* align vertical */
+}
+
+.division-item .panel-heading span {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: normal;
+}
+
+.division-item:hover {
+    cursor: move;
+}
+
+.division-item-top {
+    font-weight: bold;
+	background: #000797;
+	color: #ffffff;
+}
+
+.division-item-placeholder .panel {
+    background: none;
+}
+
+.division-item-placeholder .panel .panel-heading {
+    background: none;
+}
+
+.clear {
+    clear: both;
+}
+
+.division-pool {
+    padding: 9px;
+	width: auto;
+    border: 1px dashed gray;
+}
+
+.communicate{
+	color:#f1c40f;
+}
+
+.manage{
+	color:#3498db;
+}
+
+.dare{
+	color:#e74c3c;
+}
+
+.adapt{
+	color:#27ae60;
+}
+
+.excel{
+	color:#9b59b6;
+}
