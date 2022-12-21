@@ -134,68 +134,25 @@ $(function(){
       parent.find('ol').append('<li>Nama lengkap Anda</li>');
       valid = false;
     }
-    if ($('#nim').val() == ""){
-      parent.find('ol').append('<li>NIM Anda</li>');
-      valid = false;
-    }
-    if ($('#tempatLahir').val() == "" || $('#tanggalLahir').val() == ""){
-      parent.find('ol').append('<li>Tempat tanggal lahir Anda</li>');
-      valid = false;
-    }
-    if ($('#nomorTelepon').val() == ""){
-      parent.find('ol').append('<li>Nomor telepon Anda</li>');
-      valid = false;
-    }
-    if ($('#email').val() == ""){
-      parent.find('ol').append('<li>Alamat email Anda</li>');
-      valid = false;
-    }
-    if ($('#idLine').val() == ""){
-      parent.find('ol').append('<li>ID Line Anda</li>');
-      valid = false;
-    }
-    if (($('#noDarurat').val() == "") || ($('#pihakDarurat').val() == "")){
-      parent.find('ol').append('<li>Kontak darurat Anda</li>');
-      valid = false;
-    }
-    if ($('#alamat').val()==""){
-      parent.find('ol').append('<li>Alamat tinggal Anda di Bandung</li>');
-      valid = false;
-    }
-    if($('#kendaraan').val()==""){
-      parent.find('ol').append('<li>Kendaraan yang Anda miliki</li>');
-      valid = false;
-    }
-    if($('#keahlian').val()==""){
-      parent.find('ol').append('<li>Keahlian Anda</li>');
-      valid = false;
-    }
-    if($('#organisasi').val()==""){
-      parent.find('ol').append('<li>Pengalaman organisasi Anda</li>');
-      valid = false;
-    }
-    if($('#kepanitiaan').val()==""){
-      parent.find('ol').append('<li>Pengalaman kepanitiaan Anda</li>');
-      valid = false;
-    }
-    if($('#kesibukan').val()==""){
-      parent.find('ol').append('<li>Kesibukan Anda setahun mendatang</li>');
-      valid = false;
-    }
-
-
-    var reasonfilled=true;
-    for (var i = 1; i <= 3; ++i) {
-            if($('#reason' + i).val()==""){
-              valid=false;
-              reasonfilled=false;
-            };
-    }
-    if(!reasonfilled) parent.find('ol').append('<li>Alasan masuk divisi pilihan Anda</li>');
-
-    if(!$('#agree').is(':checked')){
-      parent.append('<span>...dan Anda belum menyetujui pernyataan akhirnya</span>');
-      valid = false;
+    
+    var section_list = ["A", "B", "C", "D", "E", "F", "G"];
+    var max_question = 8;
+    for (var idx = 0; idx < section_list.length; ++idx) {
+      var score = 0;
+      var section = section_list[idx];
+      for (var i = 1; i <= 8; ++i) {
+        console.log(section + i);
+        console.log($('#' + section + i).val());
+        score += $('#' + section + i).val() ? +$('#' + section + i).val() : 0;
+      }
+      console.log("Score: " + score);
+      if (score < 10) {
+        parent.find('ol').append('<li>Score untuk Section ' + section + ': <b>' + score + '</b>, kurang dari 10');
+        valid = false;
+      } else if (score > 10) {
+        parent.find('ol').append('<li>Score untuk Section ' + section + ': <b>' + score + '</b>, lebih dari 10');
+        valid = false;
+      }
     }
     return valid;
   }
@@ -217,109 +174,110 @@ $(function(){
     $('#error-modal').modal('close');
   });
 
+  function getListScoreSection(section) {
+    var res = []
+    for (var i = 1; i <= 8; ++i) {
+      console.log(section + i);
+      var score = $('#' + section + i).val() ? +$('#' + section + i).val() : 0;
+      res.push(score);
+    }
+    return "<b>" + res.join("</b> <b>") + "</b>";
+  }
+
   function fillModal(){
 	  $('#nama-review').html($('#name').val());
-	  $('#nim-review').html($('#nim').val());
-	  $('#ttl-review').html($('#tempatLahir').val()+", "+$('#tanggalLahir').val());
-	  $('#telp-review').html($('#nomorTelepon').val());
-	  $('#email-review').html($("#email").val());
-	  $('#line-review').html($('#idLine').val());
-	  $('#emergency-review').html($('#noDarurat').val()+" ("+$('#pihakDarurat').val()+")");
-	  $('#alamat-review').html($("#alamat").val());
-	  $('#kendaraan-review').html($("#kendaraan").val());
-	  $('#keahlian-review').html($("#keahlian").val());
-	  $('#organisasi-review').html($("#organisasi").val());
-	  $('#kepanitiaan-review').html($("#kepanitiaan").val());
-	  $('#kesibukan-review').html($("#kesibukan").val());
-	  
-	  //MBTI
-	  //talentoday.com
-	  
-	  //division
-	  var order = $('#division-review');
-        order.html('<ol></ol>');
-        $('.division-item').each(function(i, e) {
-            order.find('ol').append('<li>' + $(e).data('division') + '</li>');
-        });
-	  
-	  //reasons
-	  for (var i = 1; i <= 3; ++i) {
-            $('#reason' + i + '-review').html('<em>'+$('#reason' + i).val()+'</em>');
-        }
+	  $('#A-review').html(getListScoreSection("A"));
+	  $('#B-review').html(getListScoreSection("B"));
+	  $('#C-review').html(getListScoreSection("C"));
+	  $('#D-review').html(getListScoreSection("D"));
+	  $('#E-review').html(getListScoreSection("E"));
+	  $('#F-review').html(getListScoreSection("F"));
+	  $('#G-review').html(getListScoreSection("G"));
   }
 
   var formKey = "e/1FAIpQLSciy2r_VurxAEwt4E85w78wKVsyAGZw6Q_q4qWdAzuwx63xpA/";
 	
   var formEntries = {
-	  nim: "entry.1988027640", //done
-	  nama: "entry.994926422", //done
-	  tempatlahir: "entry.2012187542", //done
-	  tanggallahir: "entry.609900518", //done
-	  notelp: "entry.1899955254", //done
-	  notelpdarurat: "entry.227148534", //done
-	  pemilikdarurat: "entry.2106897865", //done
-	  email: "entry.82887629", //done
-	  alamat: "entry.1761637625", //done
-	  idline: "entry.1047972670", //done
-	  kendaraan: "entry.736347967", //done
-	  keahlian: "entry.1103552589", //done
-	  organisasi: "entry.249067437", //done
-	  kepanitiaan: "entry.665222541", //done
-	  kesibukan: "entry.1056663973", //done
-	  
-	  divisi:[
-		"entry.569840745",    //Pilihan 1
-		"entry.1626400103",   //Pilihan 2
-		"entry.1335677820"    //Pilihan 3
-		// "entry.141231101",//4
-		// "entry.1918773200",
-		// "entry.1139148372",
-		// "entry.1422858740",
-		// "entry.412468260",//8
-		// "entry.1041488826",
-		// "entry.101889886",
-		// "entry.1776833333"
-	  ],
-	  
-	  alasan:[
-		"entry.890713090",    //Alasan 1
-		"entry.1831067473",   //Alasan 2
-		"entry.1637086199"    //Alasan 3
-	  ],		
-  };
+    "A1": "entry.1778366916",
+    "name": "entry.1975963692",
+    "A2": "entry.1418472055",
+    "A3": "entry.1024909619",
+    "A4": "entry.255002219",
+    "A5": "entry.942908907",
+    "A6": "entry.817602717",
+    "A7": "entry.1650556991",
+    "A8": "entry.185263933",
+    "B1": "entry.759877824",
+    "B2": "entry.1435686232",
+    "B3": "entry.548528679",
+    "B4": "entry.2060920636",
+    "B5": "entry.1392057975",
+    "B6": "entry.342309999",
+    "B7": "entry.302659101",
+    "B8": "entry.1281005961",
+    "C1": "entry.1751787781",
+    "C2": "entry.48679744",
+    "C3": "entry.497638032",
+    "C4": "entry.13064540",
+    "C5": "entry.1680327567",
+    "C6": "entry.1761396628",
+    "C7": "entry.1088765947",
+    "C8": "entry.1808156798",
+    "D1": "entry.1990179209",
+    "D2": "entry.1691527555",
+    "D3": "entry.541001859",
+    "D4": "entry.1561557561",
+    "D5": "entry.333794508",
+    "D6": "entry.1094565585",
+    "D7": "entry.205152427",
+    "D8": "entry.120307793",
+    "E1": "entry.223781543",
+    "E2": "entry.1861090426",
+    "E3": "entry.1969054117",
+    "E4": "entry.699836340",
+    "E5": "entry.532762342",
+    "E7": "entry.1954639626",
+    "E8": "entry.1761069643",
+    "F1": "entry.539108166",
+    "F2": "entry.1725595889",
+    "F3": "entry.1022557710",
+    "F4": "entry.1313764635",
+    "F5": "entry.771266627",
+    "F6": "entry.346873762",
+    "F7": "entry.1418716032",
+    "F8": "entry.299159632",
+    "G1": "entry.51236173",
+    "G2": "entry.474434772",
+    "G3": "entry.1807897112",
+    "G4": "entry.129262199",
+    "G5": "entry.1713197879",
+    "G6": "entry.291123150",
+    "G7": "entry.1615824858",
+    "G8": "entry.107041403"
+};
 
   $('#real-submit-button').click(function(){
-	  var url = "https://docs.google.com/a/std.stei.itb.ac.id/forms/d/e/1FAIpQLSciy2r_VurxAEwt4E85w78wKVsyAGZw6Q_q4qWdAzuwx63xpA/formResponse";
+	  var url = "https://docs.google.com/forms/d/e/1FAIpQLScy_1X1kJJ0nO6AZLdiHb71zUb6N_tHMdtmxxbN3VIDMAQU3A/formResponse";
     
     var form = $('#main-form');
     form.attr('action', url);
     form.html('');
     
-    form.append('<input type="text" name="' + formEntries.nim + '" value="' + $('#nim').val() + '">');
-      form.append('<input type="text" name="' + formEntries.nama + '" value="' + $('#name').val() + '">');
-      form.append('<input type="text" name="' + formEntries.tempatlahir + '" value="' + $('#tempatLahir').val() + '">');
-      form.append('<input type="text" name="' + formEntries.tanggallahir + '" value="' + $('#tanggalLahir').val() + '">');
-      form.append('<input type="text" name="' + formEntries.notelp + '" value="&#39;' + $('#nomorTelepon').val() + '">');
-      form.append('<input type="text" name="' + formEntries.notelpdarurat + '" value="&#39;' + $('#noDarurat').val() + '">');
-      form.append('<input type="text" name="' + formEntries.pemilikdarurat + '" value="' + $('#pihakDarurat').val() + '">');
-      form.append('<input type="text" name="' + formEntries.email + '" value="' + $('#email').val() + '">');
-      form.append('<input type="text" name="' + formEntries.alamat + '" value="' + $('#alamat').val() + '">');
-      form.append('<input type="text" name="' + formEntries.idline + '" value="' + $('#idLine').val() + '">');
-      form.append('<input type="text" name="' + formEntries.kendaraan + '" value="' + $('#kendaraan').val() + '">');
-      form.append('<input type="text" name="' + formEntries.keahlian + '" value="' + $('#keahlian').val() + '">');
-      form.append('<input type="text" name="' + formEntries.organisasi + '" value="' + $('#organisasi').val() + '">');
-      form.append('<input type="text" name="' + formEntries.kepanitiaan + '" value="' + $('#kepanitiaan').val() + '">');
-      form.append('<input type="text" name="' + formEntries.kesibukan + '" value="' + $('#kesibukan').val() + '">');
-    
-      $('.division-item').each(function(i, e) {
-            if(i<3) form.append('<input type="text" name="' + formEntries.divisi[i] + '" value="' + $(e).data('division') + '">');
-      });
-
-      for (i = 1; i <= 3; ++i) {
-            form.append('<input type="text" name="' + formEntries.alasan[i-1] + '" value="' + $('#reason' + i).val() + '">');
+    for (const [key, value] of Object.entries(formEntries)) {
+      console.log("form id: " + value);
+      console.log("entry key: " + key);
+      console.log("value to be sent: " + $('#' + key).val() ? +$('#' + key).val() : 0);
+      if (key != "name") {
+        var raw_val = $('#' + key).val() ? +$('#' + key).val() : 0;
+        form.append('<input type="text" name="' + value + '" value="' + raw_val + '">');
+      } else {
+        form.append('<input type="text" name="' + value + '" value="' + $('#' + key).val() + '">');
       }
-      form.submit();    
-      console.log("5");
+    }
+    
+    window.alert("sometext");
+
+    form.submit();    
   });
   
   particlesJS("particles-js",{
