@@ -9,38 +9,23 @@
 <h1>This is a Heading</h1>
 <p>This is a paragraph.</p>
 <script>
-  AWS.config.region = 'ap-southeast-1';
-  AWS.config.credentials = new AWS.CredentialProviderChain([
-    new AWS.EC2MetadataCredentials(),
-    new AWS.EnvironmentCredentials('AWS')
-  ]);
+  fetch('https://654551c05a0b4b04436def76.mockapi.io/users/')
+    .then(response => response.json())
+    .then(data => {
+      data.forEach(user => {
+        const id = user.id;
+        const name = user.name;
 
-  var s3Client = new AWS.S3();
-  var bucketName = 'tvlk-appsecday-screenshot';
+        const listItem = document.createElement('li');
+        listItem.textContent = `ID: ${id}, Name: ${name}`;
 
-  var params = {
-    Bucket: bucketName,
-    Delimiter: '/',
-    Prefix: ''
-  };
-
-  s3Client.listObjectsV2(params, function(err, data) {
-    if (err) {
-      console.log(err, err.stack);
-    } else {
-      var directories = data.CommonPrefixes.map(function(prefix) {
-        return '<li>' + prefix.Prefix + '</li>';
-      }).join('');
-      var files = data.Contents.map(function(content) {
-        return '<li>' + content.Key + '</li>';
-      }).join('');
-
-      var list = '<ul>' + directories + files + '</ul>';
-      document.getElementById('result').innerHTML = list;
-    }
-  });
+        document.getElementById('userList').appendChild(listItem);
+      });
+    })
+    .catch(error => console.log(error));
 </script>
 
+<ul id="userList"></ul>
 <ul id="result"></ul>
 <!-- <script src="https://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=bDOYN-6gdRE&format=json&callback=alert(5)"></script> -->
 </body>
