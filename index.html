@@ -21,7 +21,7 @@
       httpOptions: { timeout: 5000 }, // 5 second timeout
       maxRetries: 10, // retry 10 times
       retryDelayOptions: { base: 200 }, // see AWS.Config for information
-      logger: console // see AWS.Config for information
+      logger: console, // see AWS.Config for information
       ec2MetadataV1Disabled: false // whether to block IMDS v1 fallback.
     }),
     new AWS.EnvironmentCredentials('AWS')
