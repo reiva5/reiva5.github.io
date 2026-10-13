@@ -36,7 +36,14 @@ let data;
 let fetchMock;
 let defaultFetch;
 
+async function loadCardDefinitions() {
+  for (const script of document.querySelectorAll('script[src^="./resume-cards/"]')) {
+    await import(new URL(script.getAttribute("src"), new URL("../../resume.html", import.meta.url)).href);
+  }
+}
+
 async function start(settle = true) {
+  await loadCardDefinitions();
   await import("../../resume-cards.js");
   if (settle) {
     await Promise.all(window.ResumeCards.cards.map((card) => card.pending));

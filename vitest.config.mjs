@@ -13,7 +13,7 @@ export default defineConfig({
     },
     coverage: {
       provider: "v8",
-      include: ["*.js", "scripts/*.cjs"],
+      include: ["*.js", "resume-cards/*.js", "scripts/*.cjs"],
       reporter: ["text", "html", "lcov", "json-summary"],
       reportsDirectory: "coverage",
       reportOnFailure: true,

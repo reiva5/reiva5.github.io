@@ -14,7 +14,8 @@ are preserved as supplied by their owners.
 - `styles.css`: theme, typography, and responsive layouts.
 - `script.js`: collapsible sidebar and keyboard navigation.
 - `resume.js`: hash-based navigation between Resume sections.
-- `resume-cards.js`: card classes, platform adapters, and independent loading.
+- `resume-cards/`: one file per card class, plus shared data helpers.
+- `resume-cards.js`: card initialization and independent loading.
 - `data/resume/`: metadata snapshots approved for public display.
 - `assets/logos/`: local site logos and the applicable icon license.
 - `scripts/build.mjs`: prepares static assets in `dist`.
@@ -221,6 +222,29 @@ or endorsement. Trademark rights remain with their respective owners;
 the Simple Icons CC0 license applies only to the two SVG assets.
 
 ### OOP design and independent loading
+
+Each class has its own file under `resume-cards/`:
+
+| File | Responsibility |
+| --- | --- |
+| `profile-card.js` | `ProfileCard`: identity, rendering, loading states, timeouts, and retries. |
+| `snapshot-card.js` | `SnapshotCard`: retrieval and validation of public JSON snapshots. |
+| `linkedin-card.js` | `LinkedInCard`: LinkedIn identity and snapshot source. |
+| `codeforces-card.js` | `CodeforcesCard`: Codeforces identity and public API adapter. |
+| `leetcode-card.js` | `LeetCodeCard`: LeetCode identity and snapshot source. |
+| `kaggle-card.js` | `KaggleCard`: Kaggle identity and snapshot source. |
+| `ktom-card.js` | `KtomCard`: KTOM identity and snapshot source. |
+| `profile-data-error.js` | `ProfileDataError`: recognized data-loading and validation failures. |
+| `profile-data.js` | Shared JSON retrieval and snapshot normalization; no card class. |
+
+`resume.html` loads these classic scripts with `defer`, in dependency order:
+the data error and helpers, the base classes, the platform classes, and finally
+`resume-cards.js`. Definitions register in a shared namespace without fetching
+metadata or creating cards. The final script creates the cards, publishes the
+same frozen `window.ResumeCards` API, and starts their independent loads.
+Shared data helpers are not exposed in the final public API. The build explicitly
+includes each file and checks every website script as classic JavaScript before
+copying assets; Node.js is still development tooling only.
 
 `ProfileCard` handles identity, text-based rendering, states, timeouts,
 and retries. `fetchDetails(signal)` is the adapter contract returning
