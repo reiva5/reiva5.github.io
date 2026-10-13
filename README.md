@@ -67,11 +67,28 @@ Untuk menjalankan seluruh pemeriksaan lokal:
 npm run check
 ```
 
+## CI/CD
+
+Workflow `CI` berjalan pada push, PR ke `master`, dan pemicu manual.
+
+| Check | Kondisi lulus |
+| --- | --- |
+| `Build` | Sintaks JavaScript valid dan aset statis berhasil dibangun. |
+| `Unit tests and coverage` | Seluruh unit test lulus; setiap file mencapai minimal 90% pada seluruh metric. |
+| `Browser tests` | Perilaku dan layout hasil build lulus di Chromium. |
+
+Browser tests menggunakan artifact `site-dist` yang sama dengan deployment,
+bukan build kedua. Hasil unit test JSON/JUnit, coverage HTML/LCOV/JSON/SVG,
+dan report browser disimpan sebagai artifact Actions selama 14 hari, termasuk
+saat test gagal. Ringkasan hasil tersedia pada halaman workflow run.
+
 ## GitHub Pages
 
-Setelah perubahan digabungkan ke `master`, pilih **Settings > Pages > Deploy
-from a branch**, branch **master**, dan folder **/(root)**. GitHub akan
-menerbitkan website di `https://reiva5.github.io/`.
+Publishing source harus **Settings > Pages > Source > GitHub Actions**,
+bukan deployment langsung dari sebuah branch. Push ke `master` baru menerbitkan
+website setelah ketiga check di atas berhasil; PR dan branch fitur tidak deploy.
+Artifact yang telah diverifikasi serta report coverage diterbitkan bersama
+di `https://reiva5.github.io/`.
 
 File `.nojekyll` menandai bahwa website ini tidak membutuhkan pemrosesan Jekyll.
 Aset lokal memakai URL relatif sehingga layout juga dapat dipasang pada subpath.
