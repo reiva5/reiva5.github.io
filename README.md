@@ -14,6 +14,7 @@ Tooling Node.js digunakan untuk memvalidasi dan menyiapkan hasil build.
 - `resume.js`: navigasi antarbagian Resume melalui hash URL.
 - `resume-cards.js`: kelas card, adapter per platform, dan pemuatan independen.
 - `data/resume/`: snapshot metadata yang aman ditampilkan publik.
+- `assets/logos/`: logo situs lokal beserta lisensi icon yang terkait.
 - `scripts/build.mjs`: menyiapkan aset statis di `dist`.
 
 Home masih berupa placeholder kosong. Resume tersedia di `resume.html` dan
@@ -197,6 +198,25 @@ melalui sesi yang diizinkan sebelum membuat adapter.
 Referensi: [Codeforces `user.info`](https://codeforces.com/apiHelp/methods#user.info),
 [LinkedIn Profile API dan batas aksesnya](https://learn.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api),
 serta [dokumentasi CLI Kaggle](https://github.com/Kaggle/kaggle-cli).
+
+### Logo situs
+
+Header card memakai gambar logo, bukan kode huruf. Gambar disimpan lokal,
+ikut masuk ke build statis, dan tersedia tanpa JavaScript maupun respons
+metadata. Ukuran tampilannya tetap 32px di dalam bingkai 48px dengan
+`object-fit: contain`, sehingga rasio gambar tidak berubah. Logo dekoratif
+memakai `alt=""`; nama platform sudah tersedia sebagai judul card.
+
+| Aset | Sumber |
+| --- | --- |
+| `linkedin.png` | `LI-In-Bug.png` dari [arsip logo resmi LinkedIn](https://content.linkedin.com/content/dam/me/business/en-us/amp/xbu/linkedin-revised-brand-guidelines/logos/in-logo.zip), mengikuti [panduan merek LinkedIn](https://brand.linkedin.com/). |
+| `codeforces.svg`, `leetcode.svg` | Path logo dari [Simple Icons revision `4d29a35`](https://github.com/simple-icons/simple-icons/tree/4d29a35c954699b389a834aacc97dd6e7e74143c/icons), dengan warna merek dan tanpa perubahan geometri. Lisensi CC0 disertakan di `assets/logos/SIMPLE-ICONS-LICENSE.txt`. |
+| `kaggle.ico` | [Favicon resmi Kaggle](https://www.kaggle.com/static/images/favicon.ico). |
+| `ktom.png` | Apple touch icon dari [halaman publik KTOM](https://ktom-tomi.or.id/), digunakan tanpa login dan tanpa mengubah gambar aslinya. |
+
+Logo hanya mengidentifikasi situs dari profil yang ditautkan, bukan
+menyatakan afiliasi atau dukungan resmi. Hak merek tetap milik masing-masing
+pemilik; lisensi CC0 Simple Icons hanya berlaku untuk dua aset SVG tersebut.
 
 ### Konsep OOP dan isolasi pemuatan
 

@@ -219,15 +219,22 @@ test("keeps Resume sections reachable without JavaScript", async ({ browser }) =
   await expect(page.locator("[data-card-link]")).toHaveCount(5);
   await expect(page.locator("#card-codeforces [data-card-name]")).toHaveText("reiva5");
   await expect(page.locator("[data-card-retry]:visible")).toHaveCount(0);
+  const logos = page.locator(".profile-logo");
+  await expect(logos).toHaveCount(5);
+  for (const logo of await logos.all()) {
+    await expect.poll(() => logo.evaluate((image) => image.complete && image.naturalWidth > 0)).toBe(true);
+  }
   await context.close();
 });
 
-test("loads all card scripts and public snapshots from the exact built site", async ({ page }) => {
+test("loads all card scripts, site logos, and public snapshots from the exact built site", async ({ page }) => {
   const assets = [];
   const expectedPaths = [
     "/resume.js", "/resume-cards.js",
     "/data/resume/linkedin.json", "/data/resume/leetcode.json",
     "/data/resume/kaggle.json", "/data/resume/ktom.json",
+    "/assets/logos/linkedin.png", "/assets/logos/codeforces.svg", "/assets/logos/leetcode.svg",
+    "/assets/logos/kaggle.ico", "/assets/logos/ktom.png",
   ];
   page.on("response", (response) => {
     const url = new URL(response.url());
@@ -248,6 +255,13 @@ test("loads all card scripts and public snapshots from the exact built site", as
   await expect(page.locator("#card-ktom")).toHaveAttribute("data-state", "authentication-required");
   await expect(page.locator("#card-ktom [data-card-status]")).toContainText("Perlu autentikasi");
   await expect(page.locator("#card-ktom [data-card-metadata]")).toContainText("1601");
+  const logos = page.locator(".profile-logo");
+  await expect(logos).toHaveCount(5);
+  for (const logo of await logos.all()) {
+    await expect.poll(() => logo.evaluate((image) => image.complete && image.naturalWidth > 0)).toBe(true);
+    await expect(logo).toHaveAttribute("alt", "");
+    await expect(logo).toHaveCSS("object-fit", "contain");
+  }
   expect(assets.sort((left, right) => left.path.localeCompare(right.path))).toEqual(
     expectedPaths.map((path) => ({ path, status: 200 })).sort((left, right) => left.path.localeCompare(right.path)),
   );
@@ -323,7 +337,9 @@ test("renders custom metadata as text and retains successful data after an inval
   const card = page.locator("#card-linkedin");
   await expect(card).toHaveAttribute("data-state", "ready");
   await expect(card.locator("[data-card-name]")).toHaveText(snapshot.fullName);
-  await expect(card.locator("img, script")).toHaveCount(0);
+  await expect(card.locator("img")).toHaveCount(1);
+  await expect(card.locator("img")).toHaveAttribute("src", "./assets/logos/linkedin.png");
+  await expect(card.locator("script")).toHaveCount(0);
   await expect(card.locator("dd")).toHaveText(["Custom value", "0", "false"]);
   await expect(card.locator("time")).toHaveAttribute("datetime", snapshot.updatedAt);
   await page.route("**/data/resume/linkedin.json", (route) => route.fulfill({

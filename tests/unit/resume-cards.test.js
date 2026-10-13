@@ -72,6 +72,29 @@ afterEach(() => {
 });
 
 describe("OOP card registry", () => {
+  it("provides real local site logos before scripts or profile requests run", () => {
+    const logos = [
+      ["linkedin", "linkedin.png"],
+      ["codeforces", "codeforces.svg"],
+      ["leetcode", "leetcode.svg"],
+      ["kaggle", "kaggle.ico"],
+      ["ktom", "ktom.png"],
+    ];
+    logos.forEach(([id, filename]) => {
+      const card = document.getElementById(`card-${id}`);
+      const mark = card.querySelector(".profile-mark");
+      const logo = mark.querySelector("img");
+      expect(mark.getAttribute("aria-hidden")).toBe("true");
+      expect(mark.textContent).toBe("");
+      expect(logo.getAttribute("src")).toBe(`./assets/logos/${filename}`);
+      expect(logo.getAttribute("alt")).toBe("");
+      expect(logo.width).toBe(32);
+      expect(logo.height).toBe(32);
+      expect(readFileSync(new URL(`../../assets/logos/${filename}`, import.meta.url)).length).toBeGreaterThan(0);
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("constructs distinct platform subclasses with stable identities and profile links", async () => {
     const api = await start();
     expect(Object.isFrozen(api)).toBe(true);
@@ -198,7 +221,9 @@ describe("public snapshots", () => {
     expect(Array.from(card.metadata.querySelectorAll("dd"), (entry) => entry.textContent)).toEqual([
       "<script>unsafe()</script>", "0", "false",
     ]);
-    expect(card.element.querySelectorAll("img, script")).toHaveLength(0);
+    expect(card.element.querySelectorAll("img")).toHaveLength(1);
+    expect(card.element.querySelector("img").getAttribute("src")).toBe("./assets/logos/linkedin.png");
+    expect(card.element.querySelectorAll("script")).toHaveLength(0);
     expect(card.element.textContent).not.toContain("must-not-be-rendered");
     expect(card.element.querySelector("[data-card-link]").href).toBe("https://linkedin.com/in/reiva5");
     expect(card.updated.hidden).toBe(false);

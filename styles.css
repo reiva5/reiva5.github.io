@@ -352,19 +352,14 @@ a {
   flex: 0 0 auto;
   place-items: center;
   border: 2px solid var(--ink);
-  background: var(--sky);
-  font-family: var(--mono-font);
-  font-size: 1rem;
-  font-weight: 700;
+  background: var(--canvas);
 }
 
-#card-codeforces .profile-mark,
-#card-ktom .profile-mark {
-  background: var(--ochre);
-}
-
-#card-leetcode .profile-mark {
-  background: var(--pink);
+.profile-logo {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .profile-card h3 {

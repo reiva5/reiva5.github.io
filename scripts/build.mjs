@@ -6,14 +6,19 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const output = join(root, "dist");
 const snapshots = ["linkedin", "leetcode", "kaggle", "ktom"]
   .map((platform) => join("data", "resume", `${platform}.json`));
+const logos = [
+  "linkedin.png", "codeforces.svg", "leetcode.svg", "kaggle.ico", "ktom.png",
+  "SIMPLE-ICONS-LICENSE.txt",
+].map((filename) => join("assets", "logos", filename));
 const assets = [
   "index.html", "resume.html", "styles.css", "script.js", "resume.js", "resume-cards.js", ".nojekyll",
-  ...snapshots,
+  ...snapshots, ...logos,
 ];
 
 await rm(output, { recursive: true, force: true });
 await mkdir(output);
 await mkdir(join(output, "data", "resume"), { recursive: true });
+await mkdir(join(output, "assets", "logos"), { recursive: true });
 await Promise.all(assets.map((asset) => copyFile(join(root, asset), join(output, asset))));
 
 console.log(`Built ${assets.length} static assets in dist.`);
