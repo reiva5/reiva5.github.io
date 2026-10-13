@@ -101,6 +101,7 @@ describe("OOP card registry", () => {
     });
     expect(fetchMock).toHaveBeenCalledTimes(5);
     fetchMock.mock.calls.forEach(([, options]) => {
+      expect(options.cache).toBe("no-store");
       expect(options.credentials).toBe("omit");
       expect(options.redirect).toBe("error");
       expect(options.referrerPolicy).toBe("no-referrer");

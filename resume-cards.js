@@ -6,6 +6,7 @@
   async function readJSON(source, signal) {
     const response = await fetch(source, {
       signal,
+      cache: "no-store",
       credentials: "omit",
       redirect: "error",
       referrerPolicy: "no-referrer",
