@@ -1,24 +1,32 @@
 # reiva5.github.io
 
-Kerangka website personal statis dengan gaya neo-brutalist yang terinspirasi
-Hacktoberfest. Tidak membutuhkan dependency atau proses build.
+Website personal statis dengan gaya neo-brutalist yang terinspirasi Hacktoberfest.
+Halaman tetap menggunakan HTML, CSS, dan JavaScript tanpa dependency runtime.
+Tooling Node.js digunakan untuk memvalidasi dan menyiapkan hasil build.
 
 - `index.html`: layout Home dan menu.
 - `styles.css`: tema, tipografi, dan layout responsif.
 - `script.js`: sidebar collapsible dan navigasi keyboard.
+- `scripts/build.mjs`: menyiapkan aset statis di `dist`.
 
 Home masih berupa placeholder kosong. Resume sengaja dinonaktifkan dan tidak
 memiliki tujuan navigasi.
 
 ## Preview lokal
 
-Buka `index.html` di browser, atau jalankan server statis dari root repository:
+Gunakan Node.js 24 dan jalankan dari root repository:
 
 ```powershell
-python -m http.server 8000 --bind 127.0.0.1
+npm ci
+npm run build
+npm run preview
 ```
 
-Kemudian buka `http://127.0.0.1:8000/`.
+Kemudian buka `http://127.0.0.1:4173/`. Build memeriksa sintaks JavaScript dan
+menyalin hanya aset website ke `dist`, bukan dependency atau tooling pengembangan.
+
+Untuk melihat source tanpa tooling, `index.html` juga dapat dibuka langsung
+di browser.
 
 ## GitHub Pages
 
