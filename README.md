@@ -38,7 +38,7 @@ npm run report:coverage
 
 Test memakai DOM terisolasi untuk memeriksa navigasi, sidebar desktop,
 drawer mobile, ARIA, fokus keyboard, dan pergantian viewport. Coverage
-JavaScript halaman dan helper pelaporan wajib minimal **90% per file** untuk
+JavaScript halaman dan helper pelaporan/metadata PR wajib minimal **90% per file** untuk
 statements, branches, functions, dan lines. Report HTML tersedia di
 `coverage/index.html`, hasil unit test di JSON/JUnit XML, dan badge SVG di
 `coverage/coverage.svg`. Badge menampilkan persentase terendah di antara seluruh
@@ -81,6 +81,19 @@ Browser tests menggunakan artifact `site-dist` yang sama dengan deployment,
 bukan build kedua. Hasil unit test JSON/JUnit, coverage HTML/LCOV/JSON/SVG,
 dan report browser disimpan sebagai artifact Actions selama 14 hari, termasuk
 saat test gagal. Ringkasan hasil tersedia pada halaman workflow run.
+
+## Deskripsi PR
+
+Workflow `PR description` mengisi daftar seluruh commit pada branch, termasuk
+detail pesan commit, ketika PR dibuka atau diperbarui. Bagian terkelola dari
+template diganti tanpa menghapus ringkasan atau catatan yang ditulis manual.
+Pengambilan commit menggunakan SHA tetap dan pagination, bukan batas default
+250 commit. Metadata pesan diperlakukan sebagai teks, tidak sebagai kode.
+
+Workflow dengan izin tulis hanya checkout revision **base** yang terpercaya;
+tidak pernah menjalankan source atau dependency dari head PR. Otomatisasi ini
+mulai aktif setelah workflow tersebut tersedia di `master`; PR pertama yang
+memperkenalkannya masih memerlukan daftar commit saat dibuat.
 
 ## GitHub Pages
 
