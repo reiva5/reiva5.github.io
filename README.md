@@ -12,6 +12,8 @@ Tooling Node.js digunakan untuk memvalidasi dan menyiapkan hasil build.
 - `styles.css`: tema, tipografi, dan layout responsif.
 - `script.js`: sidebar collapsible dan navigasi keyboard.
 - `resume.js`: navigasi antarbagian Resume melalui hash URL.
+- `resume-cards.js`: kelas card, adapter per platform, dan pemuatan independen.
+- `data/resume/`: snapshot metadata yang aman ditampilkan publik.
 - `scripts/build.mjs`: menyiapkan aset statis di `dist`.
 
 Home masih berupa placeholder kosong. Resume tersedia di `resume.html` dan
@@ -36,8 +38,9 @@ npm run preview
 Kemudian buka `http://127.0.0.1:4173/`. Build memeriksa sintaks JavaScript dan
 menyalin hanya aset website ke `dist`, bukan dependency atau tooling pengembangan.
 
-Untuk melihat source tanpa tooling, `index.html` juga dapat dibuka langsung
-di browser.
+Untuk melihat source tanpa tooling, `index.html` dan `resume.html` juga dapat
+dibuka langsung di browser. Tautan profil tersedia tanpa JavaScript; pemuatan
+snapshot JSON membutuhkan server HTTP lokal, bukan URL `file:`.
 
 ## Unit tests
 
@@ -48,7 +51,8 @@ npm run report:coverage
 ```
 
 Test memakai DOM terisolasi untuk memeriksa navigasi, sidebar desktop,
-drawer mobile, ARIA, fokus keyboard, dan pergantian viewport. Coverage
+drawer mobile, ARIA, fokus keyboard, pergantian viewport, adapter card,
+validasi metadata, kegagalan terisolasi, timeout, dan retry. Coverage
 JavaScript halaman dan helper pelaporan/metadata PR wajib minimal **90% per file** untuk
 statements, branches, functions, dan lines. Report HTML tersedia di
 `coverage/index.html`, hasil unit test di JSON/JUnit XML, dan badge SVG di
@@ -84,6 +88,10 @@ npm run test:browser
 
 Test browser memeriksa hasil build, ukuran layar 320-1440px, batas breakpoint
 760px, navigasi keyboard nyata, modal mobile, submenu Resume, dan reduced motion.
+Card diperiksa dari script dan snapshot hasil build yang sama, termasuk
+metadata panjang, kegagalan provider, timeout tepat 8 detik, retry mandiri,
+dan keadaan KTOM sebelum/sesudah snapshot tersedia. Respons API eksternal
+dikontrol dalam test agar CI tidak bergantung pada jaringan atau akun platform.
 Test tetap berjalan tanpa Google Fonts. Report tersedia di `playwright-report`.
 
 Untuk menjalankan seluruh pemeriksaan lokal:
@@ -155,3 +163,121 @@ sidebar menjadi drawer yang tertutup secara default.
 
 Drawer dapat ditutup melalui tombol tutup, area di luar menu, atau tombol
 Escape. Saat drawer terbuka, fokus keyboard tetap berada di dalam menu.
+Memilih tautan menu juga menutup drawer. Navigasi submenu Resume memindahkan
+fokus ke judul bagian yang dipilih.
+
+## Resume dan profile cards
+
+Resume tersedia di `resume.html`, dengan tiga submenu:
+`#cards`, `#projects`, dan `#resume-page` (label **Page**).
+Cards menjadi bagian awal; Projects dan Page sengaja masih berupa placeholder.
+URL dapat dibuka langsung, mendukung Back/Forward, dan tetap memiliki tujuan
+anchor ketika JavaScript tidak aktif.
+
+### Telaah jenis card dan sumber data
+
+Setiap card memuat nama lengkap jika tersedia, fallback username, tautan
+profil tetap, custom metadata, sumber data, dan waktu pembaruan jika diketahui.
+Statistik yang belum diperoleh tidak diisi dengan nol atau angka perkiraan.
+
+| Platform / kelas | Kandidat custom metadata | Sumber pada tahap ini |
+| --- | --- | --- |
+| LinkedIn / `LinkedInCard` | Headline, organisasi, lokasi, bidang keahlian yang ingin dipublikasikan. | `data/resume/linkedin.json`; Profile API membutuhkan akses yang disetujui dan token pengguna. |
+| Codeforces / `CodeforcesCard` | Rating, rank, rating/rank tertinggi, kontribusi, organisasi. | API publik `user.info`; hanya field yang benar-benar tersedia dipetakan. |
+| LeetCode / `LeetCodeCard` | Soal terselesaikan per tingkat kesulitan, contest rating/ranking, badge. | `data/resume/leetcode.json`; belum mengandalkan GraphQL/endpoint web internal sebagai API stabil. |
+| Kaggle / `KaggleCard` | Tier, medal, ranking per kategori Competitions, Datasets, Notebooks, Discussions. | `data/resume/kaggle.json`; pengambilan statistik profil membutuhkan adapter khusus, bukan asumsi bahwa seluruh statistik tersedia dari CLI. |
+| KTOM / `KtomCard` | ID pengguna 1601; skor, peringkat, atau riwayat yang dapat diverifikasi setelah login. | `data/resume/ktom.json`; profil mengarahkan pengunjung ke login. Status tetap `authentication-required` sampai snapshot publik disetujui. |
+
+Kandidat metadata adalah rancangan field, bukan klaim mengenai statistik akun.
+Snapshot awal LinkedIn, LeetCode, dan Kaggle masih kosong. Snapshot KTOM hanya
+memuat ID yang sudah ada pada URL publik. Login/scraper KTOM **belum
+diimplementasikan**; mekanisme autentikasi dan field privatnya perlu diverifikasi
+melalui sesi yang diizinkan sebelum membuat adapter.
+
+Referensi: [Codeforces `user.info`](https://codeforces.com/apiHelp/methods#user.info),
+[LinkedIn Profile API dan batas aksesnya](https://learn.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api),
+serta [dokumentasi CLI Kaggle](https://github.com/Kaggle/kaggle-cli).
+
+### Konsep OOP dan isolasi pemuatan
+
+`ProfileCard` menangani identitas, rendering berbasis teks, status, timeout,
+dan retry. `fetchDetails(signal)` adalah kontrak adapter yang dikembalikan
+sebagai metadata ternormalisasi. `SnapshotCard` mengimplementasikan kontrak
+tersebut untuk JSON publik; kelas tiap platform menentukan sumber dan identitas
+masing-masing. `CodeforcesCard` memiliki adapter API sendiri.
+
+Kelima objek tersedia melalui `window.ResumeCards.cards`. Inisialisasi memanggil
+`card.load()` satu per satu tanpa menunggu hasil card lain dan tanpa
+`Promise.all` yang menahan rendering. Setiap pemanggilan memiliki
+`AbortController` serta batas **8 detik** sendiri. Request yang sedang berjalan
+pada card yang sama tidak diduplikasi. Retry hanya memanggil sumber card itu,
+tanpa cookie/kredensial browser dan tanpa menggunakan cache metadata lama.
+
+Status card adalah `idle`, `loading`, `ready`, `empty`,
+`authentication-required`, atau `error`. Kegagalan HTTP, JSON, format data,
+jaringan, dan timeout tampil pada card yang bersangkutan. Identitas/tautan
+profil tetap tersedia, dan metadata terakhir yang sukses dipertahankan ketika
+refresh gagal. Kegagalan satu platform tidak menggagalkan build statis.
+
+### Mengisi custom metadata
+
+Edit snapshot platform yang sesuai menggunakan empat field berikut. Ini
+contoh format, bukan data profil yang sudah diambil:
+
+```json
+{
+  "fullName": "Nama publik yang ingin ditampilkan",
+  "metadata": [
+    { "label": "Headline", "value": "Teks metadata publik" },
+    { "label": "Jumlah", "value": 0 },
+    { "label": "Aktif", "value": false }
+  ],
+  "updatedAt": "2026-01-01T00:00:00.000Z",
+  "authenticationRequired": false
+}
+```
+
+Gunakan `fullName: null` jika nama belum tersedia, `metadata: []` jika belum
+ada detail, dan `updatedAt: null` jika waktu pembaruan belum diketahui.
+Label harus berupa string tidak kosong; value berupa string tidak kosong,
+angka finite, atau boolean. Angka nol dan boolean false tetap ditampilkan.
+`updatedAt` berupa tanggal valid; format ISO 8601 UTC disarankan.
+KTOM baru boleh diubah menjadi `authenticationRequired: false` setelah
+metadata yang dipilih diverifikasi dan disetujui untuk ditampilkan publik.
+
+Nama dan metadata dirender melalui `textContent`, bukan HTML. Username dan
+URL profil ditentukan oleh kelas, tidak dapat diganti dari snapshot.
+**Seluruh isi file snapshot dapat dibaca publik**, termasuk field tambahan
+yang tidak dirender. Validator bukan alat redaksi rahasia: jangan menambahkan
+password, token, cookie, email login, atau dump respons autentikasi ke file ini.
+
+### Membagikan kredensial KTOM dengan aman
+
+Jangan membagikan nilai kredensial melalui chat, issue, deskripsi PR, source,
+atau JSON yang dipublikasikan. Masukkan sendiri melalui GitHub
+**Settings > Secrets and variables > Actions**, idealnya sebagai environment
+secret pada environment khusus `profile-sync` yang membatasi branch
+terpercaya (`master`) dan memiliki persetujuan sebelum job dijalankan.
+Gunakan nama seperti `KTOM_USERNAME` dan `KTOM_PASSWORD`; beri tahu kolaborator
+hanya nama secret tersebut, bukan nilainya. Bila platform menyediakan token
+dengan hak baca terbatas, utamakan token itu. Cookie/session juga merupakan
+rahasia dan perlu perlindungan yang sama.
+
+Untuk integrasi berikutnya, jalankan pengambilan terautentikasi di tooling
+privat/runner GitHub Actions, bukan JavaScript pengunjung. Berikan secret
+hanya ke job KTOM; jalankan kode dari revision terpercaya, jangan menjalankan
+head PR atau kode fork dengan akses secret. Export hanya allowlist metadata
+yang telah disetujui ke snapshot publik. Jangan menyimpan respons HTML mentah,
+cookie jar, browser storage state, screenshot login, trace, atau kredensial
+di log/artifact/build. Repository privat untuk pengambilan data dapat digunakan
+agar proses autentikasi terpisah dari repository situs publik.
+
+File `.env`, `.env.*`, dan direktori `.private/` diabaikan Git; build hanya
+menyalin daftar aset situs dan empat snapshot publik yang ditentukan eksplisit.
+Ignore bukan vault dan tidak melindungi file yang sudah dilacak. Jika rahasia
+terlanjur bocor, cabut/rotasi terlebih dahulu; menghapus file saja tidak
+menghapusnya dari history. Tahap ini belum membuat workflow autentikasi atau
+membaca secret KTOM.
+
+Referensi pengaturan:
+[Using secrets in GitHub Actions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets).
