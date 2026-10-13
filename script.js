@@ -11,7 +11,7 @@ let desktopSidebarOpen = true;
 
 function setSidebarOpen(open, moveFocus = false) {
   const mobile = mobileViewport.matches;
-  const label = open ? "Sembunyikan menu" : "Tampilkan menu";
+  const label = open ? "Hide menu" : "Show menu";
 
   sidebarOpen = open;
   shell.dataset.sidebarOpen = String(open);
@@ -22,7 +22,7 @@ function setSidebarOpen(open, moveFocus = false) {
   toggleButton.setAttribute("aria-expanded", String(open));
   toggleButton.setAttribute("aria-label", label);
   toggleButton.title = label;
-  closeButton.setAttribute("aria-label", mobile ? "Tutup menu" : "Sembunyikan menu");
+  closeButton.setAttribute("aria-label", mobile ? "Close menu" : "Hide menu");
 
   if (mobile && open) {
     sidebar.setAttribute("role", "dialog");

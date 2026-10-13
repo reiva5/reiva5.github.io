@@ -12,7 +12,7 @@
       referrerPolicy: "no-referrer",
     });
     if (!response.ok) {
-      throw new ProfileDataError(`Metadata tidak dapat dimuat (HTTP ${response.status}).`);
+      throw new ProfileDataError(`Unable to load metadata (HTTP ${response.status}).`);
     }
     return response.json();
   }
@@ -27,7 +27,7 @@
         typeof data.updatedAt !== "string" || !Number.isFinite(Date.parse(data.updatedAt))
       ))
     ) {
-      throw new ProfileDataError("Format snapshot tidak valid.");
+      throw new ProfileDataError("Invalid snapshot format.");
     }
 
     const metadata = data.metadata.map((entry) => {
@@ -37,7 +37,7 @@
         (typeof entry.value === "number" && !Number.isFinite(entry.value)) ||
         (typeof entry.value === "string" && !entry.value.trim())
       ) {
-        throw new ProfileDataError("Format metadata tidak valid.");
+        throw new ProfileDataError("Invalid metadata format.");
       }
       return { label: entry.label.trim(), value: String(entry.value) };
     });
@@ -72,28 +72,28 @@
       this.name.textContent = username;
       this.handle.textContent = `@${username}`;
       link.href = profileUrl;
-      link.setAttribute("aria-label", `Buka profil ${platform} (tab baru)`);
+      link.setAttribute("aria-label", `View profile on ${platform} (opens in a new tab)`);
       this.retry.hidden = false;
       this.retry.addEventListener("click", () => this.load());
     }
 
     fetchDetails() {
-      throw new ProfileDataError("Sumber metadata belum ditentukan.");
+      throw new ProfileDataError("No metadata source has been configured.");
     }
 
     setStatus(state, message) {
       this.element.dataset.state = state;
       this.status.textContent = message;
-      const label = state === "error" ? "Coba lagi" : "Muat ulang";
+      const label = state === "error" ? "Retry" : "Reload";
       this.retry.textContent = label;
-      this.retry.setAttribute("aria-label", `${label} metadata ${this.platform}`);
+      this.retry.setAttribute("aria-label", `${label} ${this.platform} metadata`);
     }
 
     load() {
       if (this.pending) {
         return this.pending;
       }
-      this.setStatus("loading", "Memuat metadata...");
+      this.setStatus("loading", "Loading metadata...");
       this.element.setAttribute("aria-busy", "true");
       this.retry.disabled = true;
       const controller = new AbortController();
@@ -114,24 +114,24 @@
         this.renderDetails(details);
         this.details = details;
         if (details.authenticationRequired) {
-          this.setStatus("authentication-required", "Perlu autentikasi. Menunggu snapshot publik yang disetujui.");
+          this.setStatus("authentication-required", "Authentication required. Awaiting an approved public snapshot.");
         } else if (!details.fullName && details.metadata.length === 0) {
-          this.setStatus("empty", "Metadata belum ditambahkan. Tautan profil tetap tersedia.");
+          this.setStatus("empty", "No metadata added yet. The profile link is still available.");
         } else {
-          this.setStatus("ready", `${this.sourceLabel} berhasil dimuat.`);
+          this.setStatus("ready", `${this.sourceLabel} loaded successfully.`);
         }
       } catch (error) {
-        let message = "Detail gagal dimuat. Periksa koneksi lalu coba lagi.";
+        let message = "Unable to load details. Check your connection and try again.";
         if (controller.signal.aborted) {
-          message = "Batas waktu 8 detik terlampaui. Coba lagi.";
+          message = "Loading timed out after 8 seconds. Try again.";
         } else if (error instanceof ProfileDataError) {
           message = error.message;
         } else if (error instanceof SyntaxError) {
-          message = "Format JSON tidak valid.";
+          message = "Invalid JSON format.";
         }
         const retained = this.details
-          ? "Data terakhir tetap ditampilkan."
-          : "Tautan profil tetap dapat dibuka.";
+          ? "The last successful data is still displayed."
+          : "You can still open the profile link.";
         this.setStatus("error", `${message} ${retained}`);
       }
     }
@@ -153,7 +153,7 @@
       this.updated.hidden = details.updatedAt === null;
       if (details.updatedAt) {
         this.updated.dateTime = details.updatedAt;
-        this.updated.textContent = `Diperbarui ${new Date(details.updatedAt).toLocaleString("id-ID")}`;
+        this.updated.textContent = `Updated ${new Date(details.updatedAt).toLocaleString("en")}`;
       } else {
         this.updated.removeAttribute("datetime");
         this.updated.textContent = "";
@@ -163,7 +163,7 @@
 
   class SnapshotCard extends ProfileCard {
     constructor(element, options, source) {
-      super(element, { ...options, sourceLabel: "Snapshot publik" });
+      super(element, { ...options, sourceLabel: "Public snapshot" });
       this.source = source;
     }
 
@@ -188,7 +188,7 @@
         platform: "Codeforces",
         username: "reiva5",
         profileUrl: "https://codeforces.com/profile/reiva5",
-        sourceLabel: "API publik",
+        sourceLabel: "Public API",
       });
     }
 
@@ -198,11 +198,11 @@
         signal,
       );
       if (!data || data.status !== "OK" || !Array.isArray(data.result) || data.result.length !== 1) {
-        throw new ProfileDataError("Respons API Codeforces tidak valid.");
+        throw new ProfileDataError("Invalid Codeforces API response.");
       }
       const user = data.result[0];
       if (!user || typeof user.handle !== "string" || user.handle.toLowerCase() !== this.username.toLowerCase()) {
-        throw new ProfileDataError("Identitas profil Codeforces tidak sesuai.");
+        throw new ProfileDataError("Codeforces profile identity does not match.");
       }
       const fullName = [user.firstName, user.lastName]
         .filter((part) => typeof part === "string" && part.trim())

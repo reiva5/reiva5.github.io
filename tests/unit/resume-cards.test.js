@@ -67,6 +67,7 @@ beforeEach(() => {
 
 afterEach(() => {
   dom.window.close();
+  vi.restoreAllMocks();
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
@@ -117,7 +118,7 @@ describe("OOP card registry", () => {
       expect(card.username).toBe(username);
       expect(card.profileUrl).toBe(profileUrl);
       expect(card.element.querySelector("[data-card-link]").href).toBe(profileUrl);
-      expect(card.retry.getAttribute("aria-label")).toBe(`Muat ulang metadata ${platform}`);
+      expect(card.retry.getAttribute("aria-label")).toBe(`Reload ${platform} metadata`);
       expect(card.retry.hidden).toBe(false);
       expect(card.retry.disabled).toBe(false);
       expect(card.element.getAttribute("aria-busy")).toBe("false");
@@ -142,7 +143,7 @@ describe("OOP card registry", () => {
     });
     await base.load();
     expect(base.element.dataset.state).toBe("error");
-    expect(base.status.textContent).toContain("Sumber metadata belum ditentukan.");
+    expect(base.status.textContent).toContain("No metadata source has been configured.");
     expect(cardFor("Codeforces").element.dataset.state).toBe("ready");
   });
 
@@ -192,7 +193,7 @@ describe("public snapshots", () => {
       expect(card.handle.hidden).toBe(true);
       expect(card.metadata.children).toHaveLength(0);
       expect(card.element.dataset.state).toBe("empty");
-      expect(card.status.textContent).toContain("Metadata belum ditambahkan.");
+      expect(card.status.textContent).toContain("No metadata added yet.");
       expect(card.updated.hidden).toBe(true);
     }
   });
@@ -228,9 +229,21 @@ describe("public snapshots", () => {
     expect(card.element.querySelector("[data-card-link]").href).toBe("https://linkedin.com/in/reiva5");
     expect(card.updated.hidden).toBe(false);
     expect(card.updated.dateTime).toBe("2026-10-13T15:00:00.000Z");
-    expect(card.updated.textContent).toContain("Diperbarui");
+    expect(card.updated.textContent).toContain("Updated");
     expect(card.element.dataset.state).toBe("ready");
-    expect(card.status.textContent).toBe("Snapshot publik berhasil dimuat.");
+    expect(card.status.textContent).toBe("Public snapshot loaded successfully.");
+  });
+
+  it("formats update timestamps using the English locale", async () => {
+    const format = vi.spyOn(Date.prototype, "toLocaleString");
+    data.set("./data/resume/linkedin.json", snapshot({
+      fullName: "Public Name",
+      updatedAt: "2026-10-13T15:00:00.000Z",
+    }));
+    await start();
+    expect(format).toHaveBeenCalledWith("en");
+    expect(format.mock.calls.every(([locale]) => locale === "en")).toBe(true);
+    expect(cardFor("LinkedIn").updated.textContent).toMatch(/^Updated /);
   });
 
   it("treats a full name without statistics as available data", async () => {
@@ -252,8 +265,8 @@ describe("public snapshots", () => {
     await start();
     const card = cardFor("KTOM");
     expect(card.element.dataset.state).toBe("authentication-required");
-    expect(card.status.textContent).toContain("Perlu autentikasi");
-    expect(card.metadata.textContent).toBe("ID pengguna1601");
+    expect(card.status.textContent).toContain("Authentication required");
+    expect(card.metadata.textContent).toBe("User ID1601");
     expect(fetchMock.mock.calls.filter(([source]) => source.includes("ktom-tomi.or.id"))).toHaveLength(0);
     data.set("./data/resume/ktom.json", snapshot({
       fullName: "Nama KTOM",
@@ -293,7 +306,7 @@ describe("public snapshots", () => {
     data.set("./data/resume/linkedin.json", value);
     await start();
     expect(cardFor("LinkedIn").element.dataset.state).toBe("error");
-    expect(cardFor("LinkedIn").status.textContent).toContain("tidak valid");
+    expect(cardFor("LinkedIn").status.textContent).toContain("Invalid");
     expect(cardFor("LinkedIn").metadata.children).toHaveLength(0);
     expect(cardFor("Codeforces").element.dataset.state).toBe("ready");
     expect(cardFor("KTOM").element.dataset.state).toBe("authentication-required");
@@ -313,7 +326,7 @@ describe("Codeforces adapter", () => {
     expect(Array.from(card.metadata.querySelectorAll("dd"), (entry) => entry.textContent)).toEqual([
       "candidate master", "2052",
     ]);
-    expect(card.status.textContent).toBe("API publik berhasil dimuat.");
+    expect(card.status.textContent).toBe("Public API loaded successfully.");
     expect(Number.isFinite(Date.parse(card.updated.dateTime))).toBe(true);
   });
 
@@ -394,15 +407,15 @@ describe("failure isolation, timeout, and retry", () => {
     const card = cardFor("Codeforces");
     expect(card.element.dataset.state).toBe("error");
     expect(card.status.textContent).toContain("HTTP 429");
-    expect(card.retry.textContent).toBe("Coba lagi");
-    expect(card.retry.getAttribute("aria-label")).toBe("Coba lagi metadata Codeforces");
+    expect(card.retry.textContent).toBe("Retry");
+    expect(card.retry.getAttribute("aria-label")).toBe("Retry Codeforces metadata");
     expect(card.retry.disabled).toBe(false);
     fetchMock.mockImplementation(defaultFetch);
     card.retry.click();
     await card.pending;
     expect(card.element.dataset.state).toBe("ready");
-    expect(card.retry.textContent).toBe("Muat ulang");
-    expect(card.retry.getAttribute("aria-label")).toBe("Muat ulang metadata Codeforces");
+    expect(card.retry.textContent).toBe("Reload");
+    expect(card.retry.getAttribute("aria-label")).toBe("Reload Codeforces metadata");
     expect(fetchMock).toHaveBeenCalledTimes(6);
     expect(fetchMock.mock.calls.filter(([source]) => source === codeforcesURL)).toHaveLength(2);
   });
@@ -417,9 +430,9 @@ describe("failure isolation, timeout, and retry", () => {
   });
 
   it.each([
-    ["network error", new Error("private-network-details"), "Periksa koneksi"],
-    ["JSON parse error", new SyntaxError("private-parser-details"), "Format JSON tidak valid"],
-    ["unknown rejection", "private-string-details", "Periksa koneksi"],
+    ["network error", new Error("private-network-details"), "Check your connection"],
+    ["JSON parse error", new SyntaxError("private-parser-details"), "Invalid JSON format"],
+    ["unknown rejection", "private-string-details", "Check your connection"],
   ])("reports %s explicitly without showing raw error text", async (_name, error, message) => {
     fetchMock.mockImplementation((source) => source === "./data/resume/kaggle.json"
       ? Promise.resolve({ ...response(null), json: () => Promise.reject(error) })
@@ -455,7 +468,7 @@ describe("failure isolation, timeout, and retry", () => {
     await card.pending;
     expect(signal.aborted).toBe(true);
     expect(card.element.dataset.state).toBe("error");
-    expect(card.status.textContent).toContain("Batas waktu 8 detik");
+    expect(card.status.textContent).toContain("timed out after 8 seconds");
     expect(card.element.getAttribute("aria-busy")).toBe("false");
     expect(card.retry.disabled).toBe(false);
     expect(vi.getTimerCount()).toBe(0);
@@ -476,7 +489,7 @@ describe("failure isolation, timeout, and retry", () => {
     data.set("./data/resume/linkedin.json", snapshot({ metadata: [{ label: "Bad", value: {} }] }));
     await card.load();
     expect(card.element.dataset.state).toBe("error");
-    expect(card.status.textContent).toContain("Data terakhir tetap ditampilkan.");
+    expect(card.status.textContent).toContain("The last successful data is still displayed.");
     expect(card.name.textContent).toBe("Nama Sebelumnya");
     expect(card.metadata.textContent).toBe("HeadlineNilai sebelumnya");
     expect(card.updated.dateTime).toBe("2026-10-13T15:00:00.000Z");

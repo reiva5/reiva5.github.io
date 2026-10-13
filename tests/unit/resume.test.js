@@ -29,11 +29,32 @@ afterEach(() => {
 
 describe("Resume navigation", () => {
   it("keeps all sections and their anchor targets available without JavaScript", () => {
+    expect(document.documentElement.lang).toBe("en");
+    expect(document.querySelector(".skip-link").textContent).toBe("Skip navigation");
+    expect(document.querySelector("nav").getAttribute("aria-label")).toBe("Main navigation");
     expect(document.querySelector("h1").textContent).toBe("Resume_");
     expect(document.querySelector('a[aria-current="page"]').textContent).toContain("Resume");
     expect(document.querySelectorAll("[data-resume-section]")).toHaveLength(3);
     document.querySelectorAll("[data-resume-view]").forEach((link) => {
       expect(document.querySelector(link.getAttribute("href")).hidden).toBe(false);
+    });
+  });
+
+  it("provides English descriptions, fallback statuses, and profile accessibility labels", () => {
+    expect(document.querySelector(".page-description").textContent).toBe(
+      "Profiles, projects, and the journey in one place.",
+    );
+    expect(document.querySelector("#projects .empty-state").textContent).toContain(
+      "Projects will be added later.",
+    );
+    expect(document.querySelector("#resume-page .empty-state").textContent).toContain(
+      "The full resume page will be added later.",
+    );
+    expect(document.querySelector("#card-ktom [data-card-status]").textContent).toBe(
+      "Authentication is required to retrieve profile details.",
+    );
+    document.querySelectorAll("[data-card-link]").forEach((link) => {
+      expect(link.getAttribute("aria-label")).toMatch(/^View profile on .+ \(opens in a new tab\)$/);
     });
   });
 

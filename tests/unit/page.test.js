@@ -55,13 +55,15 @@ afterEach(() => {
 describe("page scaffold", () => {
   it("provides the Home landmark, active link, and empty content", async () => {
     await start();
-    expect(document.documentElement.lang).toBe("id");
+    expect(document.documentElement.lang).toBe("en");
     expect(document.querySelector("main").id).toBe("main-content");
     expect(document.querySelector(".skip-link").getAttribute("href")).toBe("#main-content");
+    expect(document.querySelector(".skip-link").textContent).toBe("Skip navigation");
+    expect(document.querySelector("nav").getAttribute("aria-label")).toBe("Main navigation");
     expect(document.querySelector("h1").textContent).toBe("Home_");
     const home = document.querySelector('nav a[aria-current="page"]');
     expect(home.getAttribute("href")).toBe("./");
-    expect(document.querySelector(".empty-state").textContent).toContain("Belum ada konten.");
+    expect(document.querySelector(".empty-state").textContent).toContain("No content yet.");
     expect(document.querySelectorAll("nav .nav-item")).toHaveLength(2);
   });
 
@@ -96,8 +98,8 @@ describe("desktop sidebar", () => {
     expect(element("menu-toggle").hidden).toBe(false);
     expect(element("sidebar-close").hidden).toBe(false);
     expect(element("menu-toggle").getAttribute("aria-expanded")).toBe("true");
-    expect(element("menu-toggle").getAttribute("aria-label")).toBe("Sembunyikan menu");
-    expect(element("sidebar-close").getAttribute("aria-label")).toBe("Sembunyikan menu");
+    expect(element("menu-toggle").getAttribute("aria-label")).toBe("Hide menu");
+    expect(element("sidebar-close").getAttribute("aria-label")).toBe("Hide menu");
     expect(element("sidebar").hasAttribute("role")).toBe(false);
     expect(element("sidebar").hasAttribute("aria-modal")).toBe(false);
     expect(element("sidebar-backdrop").hidden).toBe(true);
@@ -112,12 +114,12 @@ describe("desktop sidebar", () => {
     expect(element("site-shell").dataset.sidebarOpen).toBe("false");
     expect(element("sidebar").hidden).toBe(true);
     expect(toggle.getAttribute("aria-expanded")).toBe("false");
-    expect(toggle.getAttribute("aria-label")).toBe("Tampilkan menu");
-    expect(toggle.title).toBe("Tampilkan menu");
+    expect(toggle.getAttribute("aria-label")).toBe("Show menu");
+    expect(toggle.title).toBe("Show menu");
     expect(document.activeElement).toBe(toggle);
     toggle.click();
     expect(element("sidebar").hidden).toBe(false);
-    expect(toggle.title).toBe("Sembunyikan menu");
+    expect(toggle.title).toBe("Hide menu");
     expect(document.activeElement).toBe(toggle);
   });
 
@@ -165,8 +167,8 @@ describe("mobile drawer", () => {
     expect(element("site-shell").dataset.sidebarOpen).toBe("false");
     expect(element("sidebar").hidden).toBe(true);
     expect(element("menu-toggle").getAttribute("aria-expanded")).toBe("false");
-    expect(element("menu-toggle").getAttribute("aria-label")).toBe("Tampilkan menu");
-    expect(element("sidebar-close").getAttribute("aria-label")).toBe("Tutup menu");
+    expect(element("menu-toggle").getAttribute("aria-label")).toBe("Show menu");
+    expect(element("sidebar-close").getAttribute("aria-label")).toBe("Close menu");
     expect(element("sidebar").hasAttribute("aria-modal")).toBe(false);
     expect(element("page").inert).toBe(false);
     expect(element("sidebar-backdrop").hidden).toBe(true);
@@ -274,7 +276,7 @@ describe("viewport transitions", () => {
     changeViewport(true);
     expect(element("sidebar").hidden).toBe(true);
     expect(document.activeElement).toBe(element("menu-toggle"));
-    expect(element("sidebar-close").getAttribute("aria-label")).toBe("Tutup menu");
+    expect(element("sidebar-close").getAttribute("aria-label")).toBe("Close menu");
   });
 
   it("does not steal focus from page content when entering mobile", async () => {
@@ -296,7 +298,7 @@ describe("viewport transitions", () => {
     expect(element("page").inert).toBe(false);
     expect(element("sidebar-backdrop").hidden).toBe(true);
     expect(document.body.classList.contains("menu-open")).toBe(false);
-    expect(element("sidebar-close").getAttribute("aria-label")).toBe("Sembunyikan menu");
+    expect(element("sidebar-close").getAttribute("aria-label")).toBe("Hide menu");
   });
 
   it("does not replace an expanded desktop preference when the mobile drawer is closed", async () => {

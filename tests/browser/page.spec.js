@@ -43,10 +43,11 @@ test("loads the built page and its local assets without relying on external font
     }
   });
   await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page).toHaveTitle("Home | reiva5");
   await expect(page.getByRole("heading", { name: "Home", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Home", exact: true })).toHaveAttribute("aria-current", "page");
-  await expect(page.getByText("Belum ada konten.", { exact: true })).toBeVisible();
+  await expect(page.getByText("No content yet.", { exact: true })).toBeVisible();
   await expect(page.locator("body")).toHaveCSS("background-color", "rgb(242, 242, 235)");
   expect(assets.sort((left, right) => left.path.localeCompare(right.path))).toEqual([
     { path: "/script.js", status: 200 },
@@ -81,7 +82,7 @@ test("expands content when the desktop sidebar is hidden and can reopen it", asy
   await toggle.click();
   await expect(sidebar).toBeHidden();
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
-  await expect(toggle).toHaveAccessibleName("Tampilkan menu");
+  await expect(toggle).toHaveAccessibleName("Show menu");
   await expect(toggle).toBeFocused();
   expect(await page.locator("#page").evaluate((element) => element.getBoundingClientRect().left)).toBe(0);
   await toggle.click();
@@ -211,6 +212,7 @@ test("keeps Resume sections reachable without JavaScript", async ({ browser }) =
   const page = await context.newPage();
   await page.route("https://fonts.googleapis.com/**", (route) => route.abort());
   await page.goto("/resume.html");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
   for (const [name, id] of [["Cards", "cards"], ["Projects", "projects"], ["Page", "resume-page"]]) {
     await page.getByRole("link", { name, exact: true }).click();
     await expect(page.locator(`#${id}`)).toBeVisible();
@@ -253,7 +255,8 @@ test("loads all card scripts, site logos, and public snapshots from the exact bu
   await expect(page.locator("#card-codeforces [data-card-metadata] dt")).toHaveText(["Highest Rank", "Highest Rating"]);
   await expect(page.locator("#card-codeforces [data-card-metadata] dd")).toHaveText(["candidate master", "2052"]);
   await expect(page.locator("#card-ktom")).toHaveAttribute("data-state", "authentication-required");
-  await expect(page.locator("#card-ktom [data-card-status]")).toContainText("Perlu autentikasi");
+  await expect(page.locator("#card-ktom [data-card-status]")).toContainText("Authentication required");
+  await expect(page.locator("#card-ktom [data-card-metadata] dt")).toHaveText(["User ID"]);
   await expect(page.locator("#card-ktom [data-card-metadata]")).toContainText("1601");
   const logos = page.locator(".profile-logo");
   await expect(logos).toHaveCount(5);
@@ -272,7 +275,7 @@ test("loads all card scripts, site logos, and public snapshots from the exact bu
     ["Kaggle", "https://kaggle.com/reiva5"],
     ["KTOM", "https://ktom-tomi.or.id/users/1601-0reiva5"],
   ]) {
-    const link = page.getByRole("link", { name: `Buka profil ${platform} (tab baru)`, exact: true });
+    const link = page.getByRole("link", { name: `View profile on ${platform} (opens in a new tab)`, exact: true });
     await expect(link).toHaveAttribute("href", href);
     await expect(link).toHaveAttribute("target", "_blank");
     await expect(link).toHaveAttribute("rel", "noopener noreferrer");
@@ -294,7 +297,7 @@ test("renders other cards while a provider is pending and bounds its timeout to 
   await expect(card).toHaveAttribute("data-state", "loading");
   await page.clock.fastForward(1);
   await expect(card).toHaveAttribute("data-state", "error");
-  await expect(card.locator("[data-card-status]")).toContainText("Batas waktu 8 detik");
+  await expect(card.locator("[data-card-status]")).toContainText("timed out after 8 seconds");
   await expect(card).toHaveAttribute("aria-busy", "false");
   await card.locator("[data-card-retry]").click();
   await expect(card).toHaveAttribute("data-state", "ready");
@@ -314,7 +317,7 @@ test("isolates failures and sends a retry only to the failed provider", async ({
   await expect(card.locator("[data-card-status]")).toContainText("HTTP 503");
   await expect(page.locator("#card-leetcode")).toHaveAttribute("data-state", "empty");
   await expect(page.locator("#card-ktom")).toHaveAttribute("data-state", "authentication-required");
-  await card.getByRole("button", { name: "Coba lagi metadata Codeforces" }).click();
+  await card.getByRole("button", { name: "Retry Codeforces metadata" }).click();
   await expect(card).toHaveAttribute("data-state", "ready");
   expect(counts.get(codeforcesURL)).toBe(2);
   for (const platform of ["linkedin", "leetcode", "kaggle", "ktom"]) {
@@ -347,7 +350,7 @@ test("renders custom metadata as text and retains successful data after an inval
   }));
   await card.locator("[data-card-retry]").click();
   await expect(card).toHaveAttribute("data-state", "error");
-  await expect(card.locator("[data-card-status]")).toContainText("Data terakhir tetap ditampilkan.");
+  await expect(card.locator("[data-card-status]")).toContainText("The last successful data is still displayed.");
   await expect(card.locator("dd")).toHaveText(["Custom value", "0", "false"]);
   await expect(page.locator("#card-codeforces")).toHaveAttribute("data-state", "ready");
 });
@@ -360,7 +363,7 @@ test("reports malformed JSON separately and keeps profile links usable", async (
   await page.goto("/resume.html");
   const card = page.locator("#card-kaggle");
   await expect(card).toHaveAttribute("data-state", "error");
-  await expect(card.locator("[data-card-status]")).toContainText("Format JSON tidak valid.");
+  await expect(card.locator("[data-card-status]")).toContainText("Invalid JSON format.");
   await expect(card.locator("[data-card-link]")).toBeVisible();
   await expect(page.locator("#card-codeforces")).toHaveAttribute("data-state", "ready");
 });
@@ -387,6 +390,31 @@ test("loads an approved KTOM snapshot without making any authenticated browser r
   await expect(card.locator("[data-card-name]")).toHaveText("Nama KTOM");
   await expect(card.locator("[data-card-metadata]")).toHaveText("Skor42");
   expect(privateRequests).toEqual([]);
+});
+
+test("uses English copy across Home and every Resume section", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.locator(".skip-link")).toHaveText("Skip navigation");
+  await expect(page.locator(".page-description")).toHaveText("A blank space to start again.");
+  await expect(page.locator(".page-footer")).toContainText("A new beginning.");
+  await page.goto("/resume.html#projects");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.getByRole("navigation", { name: "Main navigation" })).toBeVisible();
+  await expect(page.locator("#projects .empty-state")).toHaveText(
+    "Projects will be added later. We are starting with Cards.",
+  );
+  await page.getByRole("link", { name: "Page", exact: true }).click();
+  await expect(page.locator("#resume-page .empty-state")).toHaveText(
+    "The full resume page will be added later. We are starting with Cards.",
+  );
+  await page.getByRole("link", { name: "Cards", exact: true }).click();
+  await expect(page.locator("#card-codeforces [data-card-source]")).toHaveText("Public API");
+  await expect(page.locator("#card-codeforces [data-card-status]")).toHaveText("Public API loaded successfully.");
+  await expect(page.locator("#card-codeforces [data-card-updated]")).toContainText("Updated");
+  await expect(page.locator("#card-ktom [data-card-status]")).toHaveText(
+    "Authentication required. Awaiting an approved public snapshot.",
+  );
 });
 
 for (const width of [320, 390, 760, 761, 1024, 1440]) {

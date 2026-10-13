@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#3d5f58">
-    <meta name="description" content="Resume reiva5: profil, proyek, dan halaman personal.">
+    <meta name="description" content="reiva5's resume: profiles, projects, and a personal page.">
     <title>Resume | reiva5</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
     <script src="./resume-cards.js" defer></script>
   </head>
   <body>
-    <a class="skip-link" href="#main-content">Lewati menu</a>
+    <a class="skip-link" href="#main-content">Skip navigation</a>
 
     <div class="site-shell" id="site-shell" data-sidebar-open="true">
       <aside class="sidebar" id="sidebar" aria-labelledby="sidebar-brand">
@@ -24,7 +24,7 @@
             <span class="brand-name" id="sidebar-brand">reiva5<span class="brand-cursor" aria-hidden="true">_</span></span>
             <span class="brand-caption">Personal website</span>
           </a>
-          <button class="icon-button sidebar-close" id="sidebar-close" type="button" aria-label="Sembunyikan menu" aria-controls="sidebar" hidden>
+          <button class="icon-button sidebar-close" id="sidebar-close" type="button" aria-label="Hide menu" aria-controls="sidebar" hidden>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="m14 6-6 6 6 6"></path>
               <path d="M20 4v16"></path>
@@ -32,7 +32,7 @@
           </button>
         </div>
 
-        <nav class="navigation" aria-label="Menu utama">
+        <nav class="navigation" aria-label="Main navigation">
           <p class="section-label">Explore</p>
           <a class="nav-item" href="./">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
@@ -50,7 +50,7 @@
             <span>Resume</span>
             <span class="nav-number" aria-hidden="true">02</span>
           </a>
-          <ul class="nav-submenu" aria-label="Submenu Resume">
+          <ul class="nav-submenu" aria-label="Resume submenu">
             <li><a class="nav-sub-item" href="#cards" data-resume-view="cards">Cards</a></li>
             <li><a class="nav-sub-item" href="#projects" data-resume-view="projects">Projects</a></li>
             <li><a class="nav-sub-item" href="#resume-page" data-resume-view="resume-page">Page</a></li>
@@ -68,7 +68,7 @@
       <div class="page" id="page">
         <header class="topbar">
           <div class="topbar-start">
-            <button class="icon-button menu-toggle" id="menu-toggle" type="button" aria-label="Sembunyikan menu" aria-controls="sidebar" aria-expanded="true" hidden>
+            <button class="icon-button menu-toggle" id="menu-toggle" type="button" aria-label="Hide menu" aria-controls="sidebar" aria-expanded="true" hidden>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                 <rect x="3" y="4" width="18" height="16"></rect>
                 <path d="M9 4v16M13 9h4M13 13h4"></path>
@@ -83,16 +83,16 @@
           <header class="page-heading">
             <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>02 / Resume</p>
             <h1>Resume<span class="title-cursor" aria-hidden="true">_</span></h1>
-            <p class="page-description">Profil, karya, dan perjalanan dalam satu ruang.</p>
+            <p class="page-description">Profiles, projects, and the journey in one place.</p>
           </header>
 
           <section class="resume-section" id="cards" data-resume-section data-resume-title="Cards" aria-labelledby="cards-title">
             <header class="resume-heading">
               <h2 id="cards-title" tabindex="-1">Cards</h2>
-              <p>Lima profil, masing-masing dengan sumber data dan pemuatan sendiri.</p>
+              <p>Five profiles, each with its own data source and independent loading.</p>
             </header>
-            <p class="cards-note">Nama atau username dan tautan profil selalu tersedia. Metadata yang belum diisi tidak diganti dengan angka perkiraan.</p>
-            <noscript><p class="cards-note">Aktifkan JavaScript untuk memuat metadata. Semua tautan profil tetap dapat dibuka.</p></noscript>
+            <p class="cards-note">Names, usernames, and profile links are always available. Missing metadata is never replaced with estimated statistics.</p>
+            <noscript><p class="cards-note">Enable JavaScript to load metadata. All profile links remain available.</p></noscript>
 
             <div class="profile-grid">
               <article class="profile-card" id="card-linkedin" data-state="idle" aria-labelledby="linkedin-title">
@@ -100,18 +100,18 @@
                   <span class="profile-mark" aria-hidden="true"><img class="profile-logo" src="./assets/logos/linkedin.png" alt="" width="32" height="32" decoding="async"></span>
                   <div>
                     <h3 id="linkedin-title" data-card-platform>LinkedIn</h3>
-                    <span class="profile-source" data-card-source>Snapshot publik</span>
+                    <span class="profile-source" data-card-source>Public snapshot</span>
                   </div>
                 </header>
                 <p class="profile-name" data-card-name>reiva5</p>
                 <p class="profile-handle" data-card-handle hidden>@reiva5</p>
                 <dl class="profile-metadata" data-card-metadata></dl>
                 <div class="profile-card-footer">
-                  <p class="profile-status" data-card-status role="status">Metadata belum dimuat.</p>
+                  <p class="profile-status" data-card-status role="status">Metadata has not been loaded.</p>
                   <time class="profile-updated" data-card-updated hidden></time>
                   <div class="profile-actions">
-                    <a class="profile-link" href="https://linkedin.com/in/reiva5" target="_blank" rel="noopener noreferrer" aria-label="Buka profil LinkedIn (tab baru)" data-card-link>Buka profil <span aria-hidden="true">-&gt;</span></a>
-                    <button class="profile-retry" type="button" data-card-retry hidden>Muat ulang</button>
+                    <a class="profile-link" href="https://linkedin.com/in/reiva5" target="_blank" rel="noopener noreferrer" aria-label="View profile on LinkedIn (opens in a new tab)" data-card-link>View profile <span aria-hidden="true">-&gt;</span></a>
+                    <button class="profile-retry" type="button" data-card-retry hidden>Reload</button>
                   </div>
                 </div>
               </article>
@@ -121,18 +121,18 @@
                   <span class="profile-mark" aria-hidden="true"><img class="profile-logo" src="./assets/logos/codeforces.svg" alt="" width="32" height="32" decoding="async"></span>
                   <div>
                     <h3 id="codeforces-title" data-card-platform>Codeforces</h3>
-                    <span class="profile-source" data-card-source>API publik</span>
+                    <span class="profile-source" data-card-source>Public API</span>
                   </div>
                 </header>
                 <p class="profile-name" data-card-name>reiva5</p>
                 <p class="profile-handle" data-card-handle hidden>@reiva5</p>
                 <dl class="profile-metadata" data-card-metadata></dl>
                 <div class="profile-card-footer">
-                  <p class="profile-status" data-card-status role="status">Metadata belum dimuat.</p>
+                  <p class="profile-status" data-card-status role="status">Metadata has not been loaded.</p>
                   <time class="profile-updated" data-card-updated hidden></time>
                   <div class="profile-actions">
-                    <a class="profile-link" href="https://codeforces.com/profile/reiva5" target="_blank" rel="noopener noreferrer" aria-label="Buka profil Codeforces (tab baru)" data-card-link>Buka profil <span aria-hidden="true">-&gt;</span></a>
-                    <button class="profile-retry" type="button" data-card-retry hidden>Muat ulang</button>
+                    <a class="profile-link" href="https://codeforces.com/profile/reiva5" target="_blank" rel="noopener noreferrer" aria-label="View profile on Codeforces (opens in a new tab)" data-card-link>View profile <span aria-hidden="true">-&gt;</span></a>
+                    <button class="profile-retry" type="button" data-card-retry hidden>Reload</button>
                   </div>
                 </div>
               </article>
@@ -142,18 +142,18 @@
                   <span class="profile-mark" aria-hidden="true"><img class="profile-logo" src="./assets/logos/leetcode.svg" alt="" width="32" height="32" decoding="async"></span>
                   <div>
                     <h3 id="leetcode-title" data-card-platform>LeetCode</h3>
-                    <span class="profile-source" data-card-source>Snapshot publik</span>
+                    <span class="profile-source" data-card-source>Public snapshot</span>
                   </div>
                 </header>
                 <p class="profile-name" data-card-name>reiva5</p>
                 <p class="profile-handle" data-card-handle hidden>@reiva5</p>
                 <dl class="profile-metadata" data-card-metadata></dl>
                 <div class="profile-card-footer">
-                  <p class="profile-status" data-card-status role="status">Metadata belum dimuat.</p>
+                  <p class="profile-status" data-card-status role="status">Metadata has not been loaded.</p>
                   <time class="profile-updated" data-card-updated hidden></time>
                   <div class="profile-actions">
-                    <a class="profile-link" href="https://leetcode.com/u/reiva5" target="_blank" rel="noopener noreferrer" aria-label="Buka profil LeetCode (tab baru)" data-card-link>Buka profil <span aria-hidden="true">-&gt;</span></a>
-                    <button class="profile-retry" type="button" data-card-retry hidden>Muat ulang</button>
+                    <a class="profile-link" href="https://leetcode.com/u/reiva5" target="_blank" rel="noopener noreferrer" aria-label="View profile on LeetCode (opens in a new tab)" data-card-link>View profile <span aria-hidden="true">-&gt;</span></a>
+                    <button class="profile-retry" type="button" data-card-retry hidden>Reload</button>
                   </div>
                 </div>
               </article>
@@ -163,18 +163,18 @@
                   <span class="profile-mark" aria-hidden="true"><img class="profile-logo" src="./assets/logos/kaggle.ico" alt="" width="32" height="32" decoding="async"></span>
                   <div>
                     <h3 id="kaggle-title" data-card-platform>Kaggle</h3>
-                    <span class="profile-source" data-card-source>Snapshot publik</span>
+                    <span class="profile-source" data-card-source>Public snapshot</span>
                   </div>
                 </header>
                 <p class="profile-name" data-card-name>reiva5</p>
                 <p class="profile-handle" data-card-handle hidden>@reiva5</p>
                 <dl class="profile-metadata" data-card-metadata></dl>
                 <div class="profile-card-footer">
-                  <p class="profile-status" data-card-status role="status">Metadata belum dimuat.</p>
+                  <p class="profile-status" data-card-status role="status">Metadata has not been loaded.</p>
                   <time class="profile-updated" data-card-updated hidden></time>
                   <div class="profile-actions">
-                    <a class="profile-link" href="https://kaggle.com/reiva5" target="_blank" rel="noopener noreferrer" aria-label="Buka profil Kaggle (tab baru)" data-card-link>Buka profil <span aria-hidden="true">-&gt;</span></a>
-                    <button class="profile-retry" type="button" data-card-retry hidden>Muat ulang</button>
+                    <a class="profile-link" href="https://kaggle.com/reiva5" target="_blank" rel="noopener noreferrer" aria-label="View profile on Kaggle (opens in a new tab)" data-card-link>View profile <span aria-hidden="true">-&gt;</span></a>
+                    <button class="profile-retry" type="button" data-card-retry hidden>Reload</button>
                   </div>
                 </div>
               </article>
@@ -184,18 +184,18 @@
                   <span class="profile-mark" aria-hidden="true"><img class="profile-logo" src="./assets/logos/ktom.png" alt="" width="32" height="32" decoding="async"></span>
                   <div>
                     <h3 id="ktom-title" data-card-platform>KTOM</h3>
-                    <span class="profile-source" data-card-source>Snapshot publik</span>
+                    <span class="profile-source" data-card-source>Public snapshot</span>
                   </div>
                 </header>
                 <p class="profile-name" data-card-name>0reiva5</p>
                 <p class="profile-handle" data-card-handle hidden>@0reiva5</p>
                 <dl class="profile-metadata" data-card-metadata></dl>
                 <div class="profile-card-footer">
-                  <p class="profile-status" data-card-status role="status">Perlu autentikasi untuk mengambil detail profil.</p>
+                  <p class="profile-status" data-card-status role="status">Authentication is required to retrieve profile details.</p>
                   <time class="profile-updated" data-card-updated hidden></time>
                   <div class="profile-actions">
-                    <a class="profile-link" href="https://ktom-tomi.or.id/users/1601-0reiva5" target="_blank" rel="noopener noreferrer" aria-label="Buka profil KTOM (tab baru)" data-card-link>Buka profil <span aria-hidden="true">-&gt;</span></a>
-                    <button class="profile-retry" type="button" data-card-retry hidden>Muat ulang</button>
+                    <a class="profile-link" href="https://ktom-tomi.or.id/users/1601-0reiva5" target="_blank" rel="noopener noreferrer" aria-label="View profile on KTOM (opens in a new tab)" data-card-link>View profile <span aria-hidden="true">-&gt;</span></a>
+                    <button class="profile-retry" type="button" data-card-retry hidden>Reload</button>
                   </div>
                 </div>
               </article>
@@ -205,12 +205,12 @@
           <section class="resume-section" id="projects" data-resume-section data-resume-title="Projects" aria-labelledby="projects-title">
             <header class="resume-heading">
               <h2 id="projects-title" tabindex="-1">Projects</h2>
-              <p>Kumpulan karya dan proyek.</p>
+              <p>A collection of work and projects.</p>
             </header>
             <div class="empty-canvas">
               <div class="canvas-toolbar"><span>Projects / Coming later</span></div>
               <div class="canvas-body">
-                <div class="empty-state"><p>Projects belum tersedia. Saat ini kita mulai dari Cards.</p></div>
+                <div class="empty-state"><p>Projects will be added later. We are starting with Cards.</p></div>
               </div>
             </div>
           </section>
@@ -218,19 +218,19 @@
           <section class="resume-section" id="resume-page" data-resume-section data-resume-title="Page" aria-labelledby="resume-page-title">
             <header class="resume-heading">
               <h2 id="resume-page-title" tabindex="-1">Page</h2>
-              <p>Halaman resume lengkap.</p>
+              <p>The complete resume page.</p>
             </header>
             <div class="empty-canvas">
               <div class="canvas-toolbar"><span>Resume page / Coming later</span></div>
               <div class="canvas-body">
-                <div class="empty-state"><p>Page belum tersedia. Saat ini kita mulai dari Cards.</p></div>
+                <div class="empty-state"><p>The full resume page will be added later. We are starting with Cards.</p></div>
               </div>
             </div>
           </section>
 
           <footer class="page-footer">
             <span>reiva5.github.io</span>
-            <span>Setiap profil, satu cerita.</span>
+            <span>Every profile has a story.</span>
           </footer>
         </main>
       </div>
