@@ -253,34 +253,242 @@ a {
   box-shadow: 2px 2px 0 var(--ink);
 }
 
-.nav-number,
-.soon-tag {
+.nav-number {
   margin-left: auto;
   font-size: 0.58rem;
-}
-
-.nav-number {
   opacity: 0.75;
 }
 
-.nav-item-disabled {
-  background: transparent;
-  color: #ccd6d0;
-  cursor: not-allowed;
+.nav-item:not(.nav-item-active):hover {
+  background: var(--forest-dark);
 }
 
-.soon-tag {
-  padding: 2px 5px;
-  border: 1px solid #a1b5ab;
-  font-weight: 400;
-  text-transform: uppercase;
+.nav-submenu {
+  margin: 18px 0 0 24px;
+  padding: 0 0 0 16px;
+  border-left: 2px solid #a1b5ab;
+  list-style: none;
 }
 
-.nav-note {
-  margin: 7px 0 0;
-  padding-left: 14px;
-  color: #ccd6d0;
-  font-size: 0.72rem;
+.nav-sub-item {
+  display: block;
+  min-height: 44px;
+  padding: 11px 12px;
+  font-family: var(--mono-font);
+  font-size: 0.7rem;
+  text-decoration: none;
+}
+
+.nav-sub-item:hover,
+.nav-sub-item-active {
+  background: var(--forest-dark);
+}
+
+.nav-sub-item-active {
+  color: #ffcf69;
+  box-shadow: inset 3px 0 0 var(--ochre);
+}
+
+.resume-section + .resume-section {
+  margin-top: 48px;
+}
+
+.resume-heading {
+  margin-bottom: 24px;
+}
+
+.resume-heading h2 {
+  margin: 0;
+  font-family: var(--display-font);
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.resume-heading p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.cards-note {
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  align-items: start;
+  gap: 28px;
+}
+
+.profile-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 24px;
+  border: 2px solid var(--ink);
+  background: var(--canvas);
+  box-shadow: 6px 6px 0 var(--forest);
+  overflow-wrap: anywhere;
+}
+
+.profile-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profile-card-heading > div {
+  min-width: 0;
+}
+
+.profile-mark {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 2px solid var(--ink);
+  background: var(--canvas);
+}
+
+.profile-logo {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.profile-card h3 {
+  margin: 0;
+  font-family: var(--display-font);
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.profile-source,
+.profile-handle,
+.profile-updated {
+  color: var(--muted);
+  font-family: var(--mono-font);
+  font-size: 0.58rem;
+}
+
+.profile-name {
+  margin: 26px 0 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.profile-handle {
+  margin: 6px 0 0;
+  font-size: 0.65rem;
+}
+
+.profile-metadata {
+  margin: 24px 0 0;
+  font-size: 0.8rem;
+}
+
+.profile-metadata:empty {
+  margin-top: 0;
+}
+
+.profile-metadata > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid #bdc8bf;
+}
+
+.profile-metadata dt {
+  color: var(--muted);
+}
+
+.profile-metadata dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+.profile-card-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 2px solid var(--ink);
+}
+
+.profile-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.profile-card[data-state="error"] {
+  box-shadow: 6px 6px 0 var(--pink-shadow);
+}
+
+.profile-card[data-state="error"] .profile-status {
+  color: var(--pink-shadow);
+}
+
+.profile-card[data-state="authentication-required"] {
+  box-shadow: 6px 6px 0 var(--ochre);
+}
+
+.profile-updated {
+  display: block;
+  margin-top: 10px;
+  line-height: 1.7;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.profile-link,
+.profile-retry {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 2px solid var(--ink);
+  font-family: var(--mono-font);
+  font-size: 0.6rem;
+  font-weight: 500;
+}
+
+.profile-link {
+  background: var(--sky);
+  text-decoration: none;
+}
+
+.profile-link:hover,
+.profile-retry:hover:not(:disabled) {
+  background: var(--ochre);
+}
+
+.profile-retry {
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.profile-retry:disabled {
+  color: var(--muted);
+  cursor: wait;
 }
 
 .sidebar-footer {
@@ -551,8 +759,7 @@ h1 {
     display: none;
   }
 
-  .nav-item-disabled,
-  .nav-note {
+  .nav-sub-item-active {
     color: var(--canvas);
   }
 }

@@ -1,19 +1,20 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#3d5f58">
-    <meta name="description" content="Ruang personal reiva5.">
+    <meta name="description" content="reiva5's personal space.">
     <title>Home | reiva5</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700;800&family=Inter:wght@400;500;600;700&family=Martian+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css">
-    <script src="./script.js" defer></script>
+    <script src="./js/shared/sidebar.js" defer></script>
+    <script src="./js/home/index.js" defer></script>
   </head>
   <body>
-    <a class="skip-link" href="#main-content">Lewati menu</a>
+    <a class="skip-link" href="#main-content">Skip navigation</a>
 
     <div class="site-shell" id="site-shell" data-sidebar-open="true">
       <aside class="sidebar" id="sidebar" aria-labelledby="sidebar-brand">
@@ -22,7 +23,7 @@
             <span class="brand-name" id="sidebar-brand">reiva5<span class="brand-cursor" aria-hidden="true">_</span></span>
             <span class="brand-caption">Personal website</span>
           </a>
-          <button class="icon-button sidebar-close" id="sidebar-close" type="button" aria-label="Sembunyikan menu" aria-controls="sidebar" hidden>
+          <button class="icon-button sidebar-close" id="sidebar-close" type="button" aria-label="Hide menu" aria-controls="sidebar" hidden>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="m14 6-6 6 6 6"></path>
               <path d="M20 4v16"></path>
@@ -30,7 +31,7 @@
           </button>
         </div>
 
-        <nav class="navigation" aria-label="Menu utama">
+        <nav class="navigation" aria-label="Main navigation">
           <p class="section-label">Explore</p>
           <a class="nav-item nav-item-active" href="./" aria-current="page">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
@@ -40,15 +41,19 @@
             <span>Home</span>
             <span class="nav-number" aria-hidden="true">01</span>
           </a>
-          <button class="nav-item nav-item-disabled" type="button" aria-describedby="resume-note" disabled>
+          <a class="nav-item" href="./resume.html">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
               <path d="M5 3h10l4 4v14H5z"></path>
               <path d="M14 3v5h5M8 12h8M8 16h6"></path>
             </svg>
             <span>Resume</span>
-            <span class="soon-tag">Soon</span>
-          </button>
-          <p class="nav-note" id="resume-note">Resume belum tersedia.</p>
+            <span class="nav-number" aria-hidden="true">02</span>
+          </a>
+          <ul class="nav-submenu" aria-label="Resume submenu">
+            <li><a class="nav-sub-item" href="./resume.html#cards">Cards</a></li>
+            <li><a class="nav-sub-item" href="./resume.html#projects">Projects</a></li>
+            <li><a class="nav-sub-item" href="./resume.html#resume-page">Page</a></li>
+          </ul>
         </nav>
 
         <div class="sidebar-footer">
@@ -62,7 +67,7 @@
       <div class="page" id="page">
         <header class="topbar">
           <div class="topbar-start">
-            <button class="icon-button menu-toggle" id="menu-toggle" type="button" aria-label="Sembunyikan menu" aria-controls="sidebar" aria-expanded="true" hidden>
+            <button class="icon-button menu-toggle" id="menu-toggle" type="button" aria-label="Hide menu" aria-controls="sidebar" aria-expanded="true" hidden>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                 <rect x="3" y="4" width="18" height="16"></rect>
                 <path d="M9 4v16M13 9h4M13 13h4"></path>
@@ -77,10 +82,10 @@
           <header class="page-heading">
             <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>01 / Home</p>
             <h1>Home<span class="title-cursor" aria-hidden="true">_</span></h1>
-            <p class="page-description">Sebuah ruang kosong untuk mulai lagi.</p>
+            <p class="page-description">A blank space to start again.</p>
           </header>
 
-          <section class="empty-canvas" aria-label="Area konten Home">
+          <section class="empty-canvas" aria-label="Home content area">
             <div class="canvas-toolbar" aria-hidden="true">
               <span>Blank canvas</span>
               <div class="canvas-dots">
@@ -95,14 +100,14 @@
                   <path class="empty-state-paper" d="M15 8h25l9 9v39H15z"></path>
                   <path d="M40 8v10h9M25 32h14M32 25v14"></path>
                 </svg>
-                <p>Belum ada konten.</p>
+                <p>No content yet.</p>
               </div>
             </div>
           </section>
 
           <footer class="page-footer">
             <span>reiva5.github.io</span>
-            <span>Sebuah awal baru.</span>
+            <span>A new beginning.</span>
           </footer>
         </main>
       </div>

@@ -6,7 +6,7 @@
     "node": "24.x"
   },
   "scripts": {
-    "build": "node --check script.js && node scripts/build.mjs",
+    "build": "node scripts/build.mjs",
     "preview": "http-server dist -a 127.0.0.1 -p 4173 -c-1",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
