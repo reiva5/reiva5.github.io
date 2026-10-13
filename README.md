@@ -183,7 +183,7 @@ Statistik yang belum diperoleh tidak diisi dengan nol atau angka perkiraan.
 | Platform / kelas | Kandidat custom metadata | Sumber pada tahap ini |
 | --- | --- | --- |
 | LinkedIn / `LinkedInCard` | Headline, organisasi, lokasi, bidang keahlian yang ingin dipublikasikan. | `data/resume/linkedin.json`; Profile API membutuhkan akses yang disetujui dan token pengguna. |
-| Codeforces / `CodeforcesCard` | Rating, rank, rating/rank tertinggi, kontribusi, organisasi. | API publik `user.info`; hanya field yang benar-benar tersedia dipetakan. |
+| Codeforces / `CodeforcesCard` | Hanya Rank saat ini dan Rating tertinggi. | API publik `user.info`; `rank` dan `maxRating` dipetakan jika tersedia. Rating saat ini, rank tertinggi, kontribusi, dan organisasi tidak ditampilkan. |
 | LeetCode / `LeetCodeCard` | Soal terselesaikan per tingkat kesulitan, contest rating/ranking, badge. | `data/resume/leetcode.json`; belum mengandalkan GraphQL/endpoint web internal sebagai API stabil. |
 | Kaggle / `KaggleCard` | Tier, medal, ranking per kategori Competitions, Datasets, Notebooks, Discussions. | `data/resume/kaggle.json`; pengambilan statistik profil membutuhkan adapter khusus, bukan asumsi bahwa seluruh statistik tersedia dari CLI. |
 | KTOM / `KtomCard` | ID pengguna 1601; skor, peringkat, atau riwayat yang dapat diverifikasi setelah login. | `data/resume/ktom.json`; profil mengarahkan pengunjung ke login. Status tetap `authentication-required` sampai snapshot publik disetujui. |
