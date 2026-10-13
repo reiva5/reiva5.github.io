@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="./styles.css">
     <script src="./script.js" defer></script>
     <script src="./resume.js" defer></script>
+    <script src="./resume-cards.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Lewati menu</a>
@@ -88,13 +89,116 @@
           <section class="resume-section" id="cards" data-resume-section data-resume-title="Cards" aria-labelledby="cards-title">
             <header class="resume-heading">
               <h2 id="cards-title" tabindex="-1">Cards</h2>
-              <p>Identitas dan metadata dari setiap profil.</p>
+              <p>Lima profil, masing-masing dengan sumber data dan pemuatan sendiri.</p>
             </header>
-            <div class="empty-canvas">
-              <div class="canvas-toolbar"><span>Profile cards</span></div>
-              <div class="canvas-body">
-                <div class="empty-state"><p>Card profil sedang disiapkan.</p></div>
-              </div>
+            <p class="cards-note">Nama atau username dan tautan profil selalu tersedia. Metadata yang belum diisi tidak diganti dengan angka perkiraan.</p>
+            <noscript><p class="cards-note">Aktifkan JavaScript untuk memuat metadata. Semua tautan profil tetap dapat dibuka.</p></noscript>
+
+            <div class="profile-grid">
+              <article class="profile-card" id="card-linkedin" data-state="idle" aria-labelledby="linkedin-title">
+                <header class="profile-card-heading">
+                  <span class="profile-mark" aria-hidden="true">in</span>
+                  <div>
+                    <h3 id="linkedin-title" data-card-platform>LinkedIn</h3>
+                    <span class="profile-source" data-card-source>Snapshot publik</span>
+                  </div>
+                </header>
+                <p class="profile-name" data-card-name>reiva5</p>
+                <p class="profile-handle" data-card-handle hidden>@reiva5</p>
+                <dl class="profile-metadata" data-card-metadata></dl>
+                <div class="profile-card-footer">
+                  <p class="profile-status" data-card-status role="status">Metadata belum dimuat.</p>
+                  <time class="profile-updated" data-card-updated hidden></time>
+                  <div class="profile-actions">
+                    <a class="profile-link" href="https://linkedin.com/in/reiva5" target="_blank" rel="noopener noreferrer" aria-label="Buka profil LinkedIn (tab baru)" data-card-link>Buka profil <span aria-hidden="true">-&gt;</span></a>
+                    <button class="profile-retry" type="button" data-card-retry hidden>Muat ulang</button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="profile-card" id="card-codeforces" data-state="idle" aria-labelledby="codeforces-title">
+                <header class="profile-card-heading">
+                  <span class="profile-mark" aria-hidden="true">CF</span>
+                  <div>
+                    <h3 id="codeforces-title" data-card-platform>Codeforces</h3>
+                    <span class="profile-source" data-card-source>API publik</span>
+                  </div>
+                </header>
+                <p class="profile-name" data-card-name>reiva5</p>
+                <p class="profile-handle" data-card-handle hidden>@reiva5</p>
+                <dl class="profile-metadata" data-card-metadata></dl>
+                <div class="profile-card-footer">
+                  <p class="profile-status" data-card-status role="status">Metadata belum dimuat.</p>
+                  <time class="profile-updated" data-card-updated hidden></time>
+                  <div class="profile-actions">
+                    <a class="profile-link" href="https://codeforces.com/profile/reiva5" target="_blank" rel="noopener noreferrer" aria-label="Buka profil Codeforces (tab baru)" data-card-link>Buka profil <span aria-hidden="true">-&gt;</span></a>
+                    <button class="profile-retry" type="button" data-card-retry hidden>Muat ulang</button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="profile-card" id="card-leetcode" data-state="idle" aria-labelledby="leetcode-title">
+                <header class="profile-card-heading">
+                  <span class="profile-mark" aria-hidden="true">LC</span>
+                  <div>
+                    <h3 id="leetcode-title" data-card-platform>LeetCode</h3>
+                    <span class="profile-source" data-card-source>Snapshot publik</span>
+                  </div>
+                </header>
+                <p class="profile-name" data-card-name>reiva5</p>
+                <p class="profile-handle" data-card-handle hidden>@reiva5</p>
+                <dl class="profile-metadata" data-card-metadata></dl>
+                <div class="profile-card-footer">
+                  <p class="profile-status" data-card-status role="status">Metadata belum dimuat.</p>
+                  <time class="profile-updated" data-card-updated hidden></time>
+                  <div class="profile-actions">
+                    <a class="profile-link" href="https://leetcode.com/u/reiva5" target="_blank" rel="noopener noreferrer" aria-label="Buka profil LeetCode (tab baru)" data-card-link>Buka profil <span aria-hidden="true">-&gt;</span></a>
+                    <button class="profile-retry" type="button" data-card-retry hidden>Muat ulang</button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="profile-card" id="card-kaggle" data-state="idle" aria-labelledby="kaggle-title">
+                <header class="profile-card-heading">
+                  <span class="profile-mark" aria-hidden="true">K</span>
+                  <div>
+                    <h3 id="kaggle-title" data-card-platform>Kaggle</h3>
+                    <span class="profile-source" data-card-source>Snapshot publik</span>
+                  </div>
+                </header>
+                <p class="profile-name" data-card-name>reiva5</p>
+                <p class="profile-handle" data-card-handle hidden>@reiva5</p>
+                <dl class="profile-metadata" data-card-metadata></dl>
+                <div class="profile-card-footer">
+                  <p class="profile-status" data-card-status role="status">Metadata belum dimuat.</p>
+                  <time class="profile-updated" data-card-updated hidden></time>
+                  <div class="profile-actions">
+                    <a class="profile-link" href="https://kaggle.com/reiva5" target="_blank" rel="noopener noreferrer" aria-label="Buka profil Kaggle (tab baru)" data-card-link>Buka profil <span aria-hidden="true">-&gt;</span></a>
+                    <button class="profile-retry" type="button" data-card-retry hidden>Muat ulang</button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="profile-card" id="card-ktom" data-state="idle" aria-labelledby="ktom-title">
+                <header class="profile-card-heading">
+                  <span class="profile-mark" aria-hidden="true">KT</span>
+                  <div>
+                    <h3 id="ktom-title" data-card-platform>KTOM</h3>
+                    <span class="profile-source" data-card-source>Snapshot publik</span>
+                  </div>
+                </header>
+                <p class="profile-name" data-card-name>0reiva5</p>
+                <p class="profile-handle" data-card-handle hidden>@0reiva5</p>
+                <dl class="profile-metadata" data-card-metadata></dl>
+                <div class="profile-card-footer">
+                  <p class="profile-status" data-card-status role="status">Perlu autentikasi untuk mengambil detail profil.</p>
+                  <time class="profile-updated" data-card-updated hidden></time>
+                  <div class="profile-actions">
+                    <a class="profile-link" href="https://ktom-tomi.or.id/users/1601-0reiva5" target="_blank" rel="noopener noreferrer" aria-label="Buka profil KTOM (tab baru)" data-card-link>Buka profil <span aria-hidden="true">-&gt;</span></a>
+                    <button class="profile-retry" type="button" data-card-retry hidden>Muat ulang</button>
+                  </div>
+                </div>
+              </article>
             </div>
           </section>
 
