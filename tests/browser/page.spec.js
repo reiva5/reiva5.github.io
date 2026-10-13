@@ -38,7 +38,9 @@ test("loads the built page and its local assets without relying on external font
   const assets = [];
   page.on("response", (response) => {
     const url = new URL(response.url());
-    if (url.origin === "http://127.0.0.1:4173" && ["/styles.css", "/script.js"].includes(url.pathname)) {
+    if (url.origin === "http://127.0.0.1:4173" && [
+      "/styles.css", "/js/shared/sidebar.js", "/js/home/index.js",
+    ].includes(url.pathname)) {
       assets.push({ path: url.pathname, status: response.status() });
     }
   });
@@ -50,7 +52,8 @@ test("loads the built page and its local assets without relying on external font
   await expect(page.getByText("No content yet.", { exact: true })).toBeVisible();
   await expect(page.locator("body")).toHaveCSS("background-color", "rgb(242, 242, 235)");
   expect(assets.sort((left, right) => left.path.localeCompare(right.path))).toEqual([
-    { path: "/script.js", status: 200 },
+    { path: "/js/home/index.js", status: 200 },
+    { path: "/js/shared/sidebar.js", status: 200 },
     { path: "/styles.css", status: 200 },
   ]);
 });
@@ -232,6 +235,7 @@ test("keeps Resume sections reachable without JavaScript", async ({ browser }) =
 test("loads all card scripts, site logos, and public snapshots from the exact built site", async ({ page }) => {
   const assets = [];
   const expectedPaths = [
+    "/js/shared/sidebar.js",
     "/js/resume/index.js", "/js/resume/cards.js",
     "/js/card/ProfileDataError.js", "/js/card/data.js",
     "/js/card/ProfileCard.js", "/js/card/SnapshotCard.js",

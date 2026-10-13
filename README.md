@@ -12,8 +12,9 @@ are preserved as supplied by their owners.
 - `index.html`: Home layout and navigation.
 - `resume.html`: Resume with Cards, Projects, and Page submenus.
 - `styles.css`: theme, typography, and responsive layouts.
-- `script.js`: collapsible sidebar and keyboard navigation.
-- `js/resume/index.js`: hash-based navigation between Resume sections.
+- `js/home/index.js`: Home page initialization.
+- `js/shared/sidebar.js`: shared responsive sidebar and keyboard navigation.
+- `js/resume/index.js`: Resume initialization and hash-based section navigation.
 - `js/card/`: one matching file per card class, plus shared data helpers.
 - `js/resume/cards.js`: Resume card initialization and independent loading.
 - `data/resume/`: metadata snapshots approved for public display.
@@ -28,6 +29,43 @@ The CI badge shows the latest `master` push status. The coverage badge and
 report come from the last successful `master` deployment and become available
 after the first Actions deployment. Failed builds or tests leave the previous
 deployment intact; failed run results remain available in Actions.
+
+## JavaScript packages
+
+All application JavaScript lives under `js/`, not beside `index.html`:
+
+```text
+js\
+  card\
+    ProfileDataError.js
+    data.js
+    ProfileCard.js
+    SnapshotCard.js
+    LinkedInCard.js
+    CodeforcesCard.js
+    LeetCodeCard.js
+    KaggleCard.js
+    KtomCard.js
+  home\
+    index.js
+  resume\
+    index.js
+    cards.js
+  shared\
+    sidebar.js
+```
+
+`card` contains reusable class definitions and data helpers. `home` and
+`resume` own their respective page initialization; `resume/cards.js` mounts
+the profile cards on Resume. Both pages call the single sidebar implementation
+from `shared`, rather than importing behavior from the other page's package.
+The shared script defines a frozen `window.SiteShell` API without starting a
+page; each page entry calls `initializeSidebar()` once.
+
+Classes use matching PascalCase filenames. Entry points and helper scripts use
+lowercase filenames. HTML loads local classic scripts with ordered `defer`
+attributes, not JavaScript modules or runtime Node dependencies. Development
+helpers stay in `scripts/`; test-runner configuration remains at the project root.
 
 ## Local preview
 

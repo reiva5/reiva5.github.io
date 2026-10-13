@@ -7,6 +7,7 @@ let dom;
 
 async function start(hash = "") {
   dom.reconfigure({ url: `https://reiva5.github.io/resume.html${hash}` });
+  await import("../../js/shared/sidebar.js");
   await import("../../js/resume/index.js");
 }
 
@@ -18,6 +19,10 @@ function navigate(hash) {
 beforeEach(() => {
   vi.resetModules();
   dom = new JSDOM(html, { url: "https://reiva5.github.io/resume.html" });
+  dom.window.matchMedia = vi.fn(() => ({
+    matches: false,
+    addEventListener: vi.fn(),
+  }));
   vi.stubGlobal("window", dom.window);
   vi.stubGlobal("document", dom.window.document);
 });
@@ -28,6 +33,23 @@ afterEach(() => {
 });
 
 describe("Resume navigation", () => {
+  it("owns its initialization and uses only packaged classic scripts", async () => {
+    const scripts = Array.from(document.querySelectorAll("script[src]"));
+    expect(scripts.slice(0, 2).map((script) => script.getAttribute("src"))).toEqual([
+      "./js/shared/sidebar.js",
+      "./js/resume/index.js",
+    ]);
+    scripts.forEach((script) => {
+      expect(script.getAttribute("src")).toMatch(/^\.\/js\/(?:shared|resume|card)\/.+\.js$/);
+      expect(script.hasAttribute("defer")).toBe(true);
+      expect(script.hasAttribute("async")).toBe(false);
+      expect(script.getAttribute("type")).toBeNull();
+    });
+    await start();
+    expect(window.matchMedia).toHaveBeenCalledTimes(1);
+    expect(document.getElementById("menu-toggle").hidden).toBe(false);
+  });
+
   it("keeps all sections and their anchor targets available without JavaScript", () => {
     expect(document.documentElement.lang).toBe("en");
     expect(document.querySelector(".skip-link").textContent).toBe("Skip navigation");

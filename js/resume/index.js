@@ -1,4 +1,6 @@
 (() => {
+  window.SiteShell.initializeSidebar();
+
   const sections = Array.from(document.querySelectorAll("[data-resume-section]"));
   const links = document.querySelectorAll("[data-resume-view]");
   const breadcrumb = document.querySelector("[data-resume-breadcrumb]");

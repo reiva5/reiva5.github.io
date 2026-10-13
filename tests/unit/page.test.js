@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -11,7 +11,8 @@ const element = (id) => document.getElementById(id);
 
 async function start(mobile = false) {
   media.matches = mobile;
-  await import("../../script.js");
+  await import("../../js/shared/sidebar.js");
+  await import("../../js/home/index.js");
 }
 
 function changeViewport(mobile) {
@@ -53,6 +54,31 @@ afterEach(() => {
 });
 
 describe("page scaffold", () => {
+  it("keeps application JavaScript in packages rather than beside index.html", () => {
+    expect(readdirSync(new URL("../../", import.meta.url)).filter((name) => name.endsWith(".js"))).toEqual([]);
+    const scripts = Array.from(document.querySelectorAll("script[src]"));
+    expect(scripts.map((script) => script.getAttribute("src"))).toEqual([
+      "./js/shared/sidebar.js",
+      "./js/home/index.js",
+    ]);
+    scripts.forEach((script) => {
+      expect(script.hasAttribute("defer")).toBe(true);
+      expect(script.hasAttribute("async")).toBe(false);
+      expect(script.getAttribute("type")).toBeNull();
+    });
+  });
+
+  it("loads shared sidebar definitions without starting Home until its package entry runs", async () => {
+    await import("../../js/shared/sidebar.js");
+    expect(Object.isFrozen(window.SiteShell)).toBe(true);
+    expect(Object.keys(window.SiteShell)).toEqual(["initializeSidebar"]);
+    expect(window.matchMedia).not.toHaveBeenCalled();
+    expect(element("menu-toggle").hidden).toBe(true);
+    await import("../../js/home/index.js");
+    expect(window.matchMedia).toHaveBeenCalledTimes(1);
+    expect(element("menu-toggle").hidden).toBe(false);
+  });
+
   it("provides the Home landmark, active link, and empty content", async () => {
     await start();
     expect(document.documentElement.lang).toBe("en");
