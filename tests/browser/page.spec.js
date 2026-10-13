@@ -233,6 +233,10 @@ test("loads all card scripts, site logos, and public snapshots from the exact bu
   const assets = [];
   const expectedPaths = [
     "/resume.js", "/resume-cards.js",
+    "/resume-cards/profile-data-error.js", "/resume-cards/profile-data.js",
+    "/resume-cards/profile-card.js", "/resume-cards/snapshot-card.js",
+    "/resume-cards/linkedin-card.js", "/resume-cards/codeforces-card.js",
+    "/resume-cards/leetcode-card.js", "/resume-cards/kaggle-card.js", "/resume-cards/ktom-card.js",
     "/data/resume/linkedin.json", "/data/resume/leetcode.json",
     "/data/resume/kaggle.json", "/data/resume/ktom.json",
     "/assets/logos/linkedin.png", "/assets/logos/codeforces.svg", "/assets/logos/leetcode.svg",
@@ -258,6 +262,16 @@ test("loads all card scripts, site logos, and public snapshots from the exact bu
   await expect(page.locator("#card-ktom [data-card-status]")).toContainText("Authentication required");
   await expect(page.locator("#card-ktom [data-card-metadata] dt")).toHaveText(["User ID"]);
   await expect(page.locator("#card-ktom [data-card-metadata]")).toContainText("1601");
+  expect(await page.evaluate(() => ({
+    frozen: Object.isFrozen(window.ResumeCards) && Object.isFrozen(window.ResumeCards.cards),
+    exports: Object.keys(window.ResumeCards),
+  }))).toEqual({
+    frozen: true,
+    exports: [
+      "ProfileCard", "SnapshotCard", "LinkedInCard", "CodeforcesCard",
+      "LeetCodeCard", "KaggleCard", "KtomCard", "cards",
+    ],
+  });
   const logos = page.locator(".profile-logo");
   await expect(logos).toHaveCount(5);
   for (const logo of await logos.all()) {

@@ -80,6 +80,54 @@ afterEach(() => {
 });
 
 describe("OOP card registry", () => {
+  it("loads one class per deferred classic script in dependency order before initialization", () => {
+    const definitions = [
+      ["profile-data-error.js", "ProfileDataError"],
+      ["profile-data.js", null],
+      ["profile-card.js", "ProfileCard"],
+      ["snapshot-card.js", "SnapshotCard"],
+      ["linkedin-card.js", "LinkedInCard"],
+      ["codeforces-card.js", "CodeforcesCard"],
+      ["leetcode-card.js", "LeetCodeCard"],
+      ["kaggle-card.js", "KaggleCard"],
+      ["ktom-card.js", "KtomCard"],
+    ];
+    const scripts = Array.from(document.querySelectorAll('script[src^="./resume-cards"]'));
+    expect(scripts.map((script) => script.getAttribute("src"))).toEqual([
+      ...definitions.map(([filename]) => `./resume-cards/${filename}`),
+      "./resume-cards.js",
+    ]);
+    scripts.forEach((script, index) => {
+      expect(script.hasAttribute("defer")).toBe(true);
+      expect(script.hasAttribute("async")).toBe(false);
+      expect(script.getAttribute("type")).toBeNull();
+      const source = readFileSync(
+        new URL(script.getAttribute("src"), new URL("../../resume.html", import.meta.url)),
+        "utf8",
+      );
+      const className = index < definitions.length ? definitions[index][1] : null;
+      expect(Array.from(source.matchAll(/\bclass\s+(\w+)/g), ([, name]) => name)).toEqual(
+        className === null ? [] : [className],
+      );
+    });
+  });
+
+  it("defines classes without creating cards or fetching data until the bootstrap runs", async () => {
+    await loadCardDefinitions();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(window.ResumeCards.cards).toBeUndefined();
+    expect(window.ResumeCards.LinkedInCard.prototype).toBeInstanceOf(window.ResumeCards.SnapshotCard);
+    expect(window.ResumeCards.CodeforcesCard.prototype).toBeInstanceOf(window.ResumeCards.ProfileCard);
+    document.querySelectorAll(".profile-card").forEach((element) => {
+      expect(element.dataset.state).toBe("idle");
+      expect(element.querySelector("[data-card-retry]").hidden).toBe(true);
+    });
+    await import("../../resume-cards.js");
+    await Promise.all(window.ResumeCards.cards.map((card) => card.pending));
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+    expect(cardFor("Codeforces").element.dataset.state).toBe("ready");
+  });
+
   it("provides real local site logos before scripts or profile requests run", () => {
     const logos = [
       ["linkedin", "linkedin.png"],
@@ -107,6 +155,10 @@ describe("OOP card registry", () => {
     const api = await start();
     expect(Object.isFrozen(api)).toBe(true);
     expect(Object.isFrozen(api.cards)).toBe(true);
+    expect(Object.keys(api)).toEqual([
+      "ProfileCard", "SnapshotCard", "LinkedInCard", "CodeforcesCard",
+      "LeetCodeCard", "KaggleCard", "KtomCard", "cards",
+    ]);
     const expected = [
       [api.LinkedInCard, "LinkedIn", "reiva5", "https://linkedin.com/in/reiva5"],
       [api.CodeforcesCard, "Codeforces", "reiva5", "https://codeforces.com/profile/reiva5"],
