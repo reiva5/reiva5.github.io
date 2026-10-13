@@ -6,9 +6,11 @@ import { Script } from "node:vm";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const output = join(root, "dist");
 const cardScripts = [
-  "profile-data-error.js", "profile-data.js", "profile-card.js", "snapshot-card.js",
-  "linkedin-card.js", "codeforces-card.js", "leetcode-card.js", "kaggle-card.js", "ktom-card.js",
-].map((filename) => join("resume-cards", filename));
+  "ProfileDataError.js", "data.js", "ProfileCard.js", "SnapshotCard.js",
+  "LinkedInCard.js", "CodeforcesCard.js", "LeetCodeCard.js", "KaggleCard.js", "KtomCard.js",
+].map((filename) => join("js", "card", filename));
+const resumeScripts = ["index.js", "cards.js"]
+  .map((filename) => join("js", "resume", filename));
 const snapshots = ["linkedin", "leetcode", "kaggle", "ktom"]
   .map((platform) => join("data", "resume", `${platform}.json`));
 const logos = [
@@ -16,8 +18,8 @@ const logos = [
   "SIMPLE-ICONS-LICENSE.txt",
 ].map((filename) => join("assets", "logos", filename));
 const assets = [
-  "index.html", "resume.html", "styles.css", "script.js", "resume.js", "resume-cards.js", ".nojekyll",
-  ...cardScripts, ...snapshots, ...logos,
+  "index.html", "resume.html", "styles.css", "script.js", ".nojekyll",
+  ...cardScripts, ...resumeScripts, ...snapshots, ...logos,
 ];
 
 await Promise.all(assets.filter((asset) => asset.endsWith(".js")).map(async (asset) => {
@@ -26,7 +28,8 @@ await Promise.all(assets.filter((asset) => asset.endsWith(".js")).map(async (ass
 
 await rm(output, { recursive: true, force: true });
 await mkdir(output);
-await mkdir(join(output, "resume-cards"), { recursive: true });
+await mkdir(join(output, "js", "card"), { recursive: true });
+await mkdir(join(output, "js", "resume"), { recursive: true });
 await mkdir(join(output, "data", "resume"), { recursive: true });
 await mkdir(join(output, "assets", "logos"), { recursive: true });
 await Promise.all(assets.map((asset) => copyFile(join(root, asset), join(output, asset))));

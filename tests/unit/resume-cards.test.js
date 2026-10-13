@@ -37,14 +37,14 @@ let fetchMock;
 let defaultFetch;
 
 async function loadCardDefinitions() {
-  for (const script of document.querySelectorAll('script[src^="./resume-cards/"]')) {
+  for (const script of document.querySelectorAll('script[src^="./js/card/"]')) {
     await import(new URL(script.getAttribute("src"), new URL("../../resume.html", import.meta.url)).href);
   }
 }
 
 async function start(settle = true) {
   await loadCardDefinitions();
-  await import("../../resume-cards.js");
+  await import("../../js/resume/cards.js");
   if (settle) {
     await Promise.all(window.ResumeCards.cards.map((card) => card.pending));
   }
@@ -82,20 +82,22 @@ afterEach(() => {
 describe("OOP card registry", () => {
   it("loads one class per deferred classic script in dependency order before initialization", () => {
     const definitions = [
-      ["profile-data-error.js", "ProfileDataError"],
-      ["profile-data.js", null],
-      ["profile-card.js", "ProfileCard"],
-      ["snapshot-card.js", "SnapshotCard"],
-      ["linkedin-card.js", "LinkedInCard"],
-      ["codeforces-card.js", "CodeforcesCard"],
-      ["leetcode-card.js", "LeetCodeCard"],
-      ["kaggle-card.js", "KaggleCard"],
-      ["ktom-card.js", "KtomCard"],
+      ["ProfileDataError.js", "ProfileDataError"],
+      ["data.js", null],
+      ["ProfileCard.js", "ProfileCard"],
+      ["SnapshotCard.js", "SnapshotCard"],
+      ["LinkedInCard.js", "LinkedInCard"],
+      ["CodeforcesCard.js", "CodeforcesCard"],
+      ["LeetCodeCard.js", "LeetCodeCard"],
+      ["KaggleCard.js", "KaggleCard"],
+      ["KtomCard.js", "KtomCard"],
     ];
-    const scripts = Array.from(document.querySelectorAll('script[src^="./resume-cards"]'));
+    const scripts = Array.from(document.querySelectorAll(
+      'script[src^="./js/card/"], script[src="./js/resume/cards.js"]',
+    ));
     expect(scripts.map((script) => script.getAttribute("src"))).toEqual([
-      ...definitions.map(([filename]) => `./resume-cards/${filename}`),
-      "./resume-cards.js",
+      ...definitions.map(([filename]) => `./js/card/${filename}`),
+      "./js/resume/cards.js",
     ]);
     scripts.forEach((script, index) => {
       expect(script.hasAttribute("defer")).toBe(true);
@@ -122,7 +124,7 @@ describe("OOP card registry", () => {
       expect(element.dataset.state).toBe("idle");
       expect(element.querySelector("[data-card-retry]").hidden).toBe(true);
     });
-    await import("../../resume-cards.js");
+    await import("../../js/resume/cards.js");
     await Promise.all(window.ResumeCards.cards.map((card) => card.pending));
     expect(fetchMock).toHaveBeenCalledTimes(5);
     expect(cardFor("Codeforces").element.dataset.state).toBe("ready");

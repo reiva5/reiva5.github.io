@@ -232,11 +232,11 @@ test("keeps Resume sections reachable without JavaScript", async ({ browser }) =
 test("loads all card scripts, site logos, and public snapshots from the exact built site", async ({ page }) => {
   const assets = [];
   const expectedPaths = [
-    "/resume.js", "/resume-cards.js",
-    "/resume-cards/profile-data-error.js", "/resume-cards/profile-data.js",
-    "/resume-cards/profile-card.js", "/resume-cards/snapshot-card.js",
-    "/resume-cards/linkedin-card.js", "/resume-cards/codeforces-card.js",
-    "/resume-cards/leetcode-card.js", "/resume-cards/kaggle-card.js", "/resume-cards/ktom-card.js",
+    "/js/resume/index.js", "/js/resume/cards.js",
+    "/js/card/ProfileDataError.js", "/js/card/data.js",
+    "/js/card/ProfileCard.js", "/js/card/SnapshotCard.js",
+    "/js/card/LinkedInCard.js", "/js/card/CodeforcesCard.js",
+    "/js/card/LeetCodeCard.js", "/js/card/KaggleCard.js", "/js/card/KtomCard.js",
     "/data/resume/linkedin.json", "/data/resume/leetcode.json",
     "/data/resume/kaggle.json", "/data/resume/ktom.json",
     "/assets/logos/linkedin.png", "/assets/logos/codeforces.svg", "/assets/logos/leetcode.svg",

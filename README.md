@@ -13,9 +13,9 @@ are preserved as supplied by their owners.
 - `resume.html`: Resume with Cards, Projects, and Page submenus.
 - `styles.css`: theme, typography, and responsive layouts.
 - `script.js`: collapsible sidebar and keyboard navigation.
-- `resume.js`: hash-based navigation between Resume sections.
-- `resume-cards/`: one file per card class, plus shared data helpers.
-- `resume-cards.js`: card initialization and independent loading.
+- `js/resume/index.js`: hash-based navigation between Resume sections.
+- `js/card/`: one matching file per card class, plus shared data helpers.
+- `js/resume/cards.js`: Resume card initialization and independent loading.
 - `data/resume/`: metadata snapshots approved for public display.
 - `assets/logos/`: local site logos and the applicable icon license.
 - `scripts/build.mjs`: prepares static assets in `dist`.
@@ -223,23 +223,23 @@ the Simple Icons CC0 license applies only to the two SVG assets.
 
 ### OOP design and independent loading
 
-Each class has its own file under `resume-cards/`:
+Each class has a matching filename under the `js/card/` package:
 
 | File | Responsibility |
 | --- | --- |
-| `profile-card.js` | `ProfileCard`: identity, rendering, loading states, timeouts, and retries. |
-| `snapshot-card.js` | `SnapshotCard`: retrieval and validation of public JSON snapshots. |
-| `linkedin-card.js` | `LinkedInCard`: LinkedIn identity and snapshot source. |
-| `codeforces-card.js` | `CodeforcesCard`: Codeforces identity and public API adapter. |
-| `leetcode-card.js` | `LeetCodeCard`: LeetCode identity and snapshot source. |
-| `kaggle-card.js` | `KaggleCard`: Kaggle identity and snapshot source. |
-| `ktom-card.js` | `KtomCard`: KTOM identity and snapshot source. |
-| `profile-data-error.js` | `ProfileDataError`: recognized data-loading and validation failures. |
-| `profile-data.js` | Shared JSON retrieval and snapshot normalization; no card class. |
+| `ProfileCard.js` | `ProfileCard`: identity, rendering, loading states, timeouts, and retries. |
+| `SnapshotCard.js` | `SnapshotCard`: retrieval and validation of public JSON snapshots. |
+| `LinkedInCard.js` | `LinkedInCard`: LinkedIn identity and snapshot source. |
+| `CodeforcesCard.js` | `CodeforcesCard`: Codeforces identity and public API adapter. |
+| `LeetCodeCard.js` | `LeetCodeCard`: LeetCode identity and snapshot source. |
+| `KaggleCard.js` | `KaggleCard`: Kaggle identity and snapshot source. |
+| `KtomCard.js` | `KtomCard`: KTOM identity and snapshot source. |
+| `ProfileDataError.js` | `ProfileDataError`: recognized data-loading and validation failures. |
+| `data.js` | Shared JSON retrieval and snapshot normalization; no card class. |
 
 `resume.html` loads these classic scripts with `defer`, in dependency order:
 the data error and helpers, the base classes, the platform classes, and finally
-`resume-cards.js`. Definitions register in a shared namespace without fetching
+`js/resume/cards.js`. Definitions register in a shared namespace without fetching
 metadata or creating cards. The final script creates the cards, publishes the
 same frozen `window.ResumeCards` API, and starts their independent loads.
 Shared data helpers are not exposed in the final public API. The build explicitly

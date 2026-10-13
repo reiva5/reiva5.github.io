@@ -7,7 +7,7 @@ let dom;
 
 async function start(hash = "") {
   dom.reconfigure({ url: `https://reiva5.github.io/resume.html${hash}` });
-  await import("../../resume.js");
+  await import("../../js/resume/index.js");
 }
 
 function navigate(hash) {
