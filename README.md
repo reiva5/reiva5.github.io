@@ -28,6 +28,18 @@ menyalin hanya aset website ke `dist`, bukan dependency atau tooling pengembanga
 Untuk melihat source tanpa tooling, `index.html` juga dapat dibuka langsung
 di browser.
 
+## Unit tests
+
+```powershell
+npm test
+npm run test:coverage
+```
+
+Test memakai DOM terisolasi untuk memeriksa navigasi, sidebar desktop,
+drawer mobile, ARIA, fokus keyboard, dan pergantian viewport. Coverage
+JavaScript halaman wajib minimal **90% per file** untuk statements, branches,
+functions, dan lines. Report HTML tersedia di `coverage/index.html`.
+
 ## GitHub Pages
 
 Setelah perubahan digabungkan ke `master`, pilih **Settings > Pages > Deploy
