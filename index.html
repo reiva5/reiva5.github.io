@@ -6,6 +6,10 @@
     <meta name="theme-color" content="#3d5f58">
     <meta name="description" content="Ruang personal reiva5.">
     <title>Home | reiva5</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700;800&family=Inter:wght@400;500;600;700&family=Martian+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <a class="skip-link" href="#main-content">Lewati menu</a>
@@ -22,9 +26,18 @@
         <nav class="navigation" aria-label="Menu utama">
           <p class="section-label">Explore</p>
           <a class="nav-item nav-item-active" href="./" aria-current="page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+              <path d="m3 10 9-7 9 7v10H3z"></path>
+              <path d="M9 20v-7h6v7"></path>
+            </svg>
             <span>Home</span>
+            <span class="nav-number" aria-hidden="true">01</span>
           </a>
           <button class="nav-item nav-item-disabled" type="button" aria-describedby="resume-note" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 3h10l4 4v14H5z"></path>
+              <path d="M14 3v5h5M8 12h8M8 16h6"></path>
+            </svg>
             <span>Resume</span>
             <span class="soon-tag">Soon</span>
           </button>
@@ -63,6 +76,10 @@
             </div>
             <div class="canvas-body">
               <div class="empty-state">
+                <svg class="empty-state-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path class="empty-state-paper" d="M15 8h25l9 9v39H15z"></path>
+                  <path d="M40 8v10h9M25 32h14M32 25v14"></path>
+                </svg>
                 <p>Belum ada konten.</p>
               </div>
             </div>
