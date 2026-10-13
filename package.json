@@ -9,9 +9,12 @@
     "build": "node --check script.js && node scripts/build.mjs",
     "preview": "http-server dist -a 127.0.0.1 -p 4173 -c-1",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:browser": "playwright test",
+    "check": "npm run build && npm run test:coverage && npm run test:browser"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@vitest/coverage-v8": "5.0.3",
     "http-server": "14.1.1",
     "jsdom": "26.1.0",
