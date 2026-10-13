@@ -1,0 +1,59 @@
+name: PR description
+
+on:
+  pull_request_target:
+    branches: [master]
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-description-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  commit-list:
+    name: Update branch commit list
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out only the trusted base revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - name: Update only the managed description section
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const { collectCommits, updateDescription } = require("./scripts/pr-description.cjs");
+            const pull_number = context.payload.pull_request.number;
+            const params = { ...context.repo, pull_number };
+            const { data: pull } = await github.rest.pulls.get(params);
+            if (pull.state !== "open") {
+              core.info("PR is no longer open; its description was not changed.");
+              return;
+            }
+            const commits = await collectCommits(async (page) => {
+              const { data } = await github.request("GET /repos/{owner}/{repo}/compare/{basehead}", {
+                ...context.repo,
+                basehead: `${pull.base.sha}...${pull.head.sha}`,
+                per_page: 100,
+                page,
+              });
+              return data;
+            });
+            const { data: current } = await github.rest.pulls.get(params);
+            if (current.state !== "open" || current.head.sha !== pull.head.sha || current.base.sha !== pull.base.sha) {
+              core.notice("PR changed during pagination; its description was not overwritten.");
+              return;
+            }
+            const body = updateDescription(current.body, commits);
+            if (body === current.body) {
+              core.info("The branch commit list is already current.");
+              return;
+            }
+            await github.rest.pulls.update({ ...params, body });
+            core.info(`Updated the description with all ${commits.length} branch commits.`);

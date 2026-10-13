@@ -1,0 +1,20 @@
+instructions: |
+  Start new feature branches from the latest origin/master.
+  Keep production as static HTML, CSS, and classic JavaScript; Node dependencies are development tooling only.
+  Commit each coherent implementation step separately with a meaningful explanation.
+  Never collect the complete task into one catch-all commit or squash the feature branch's working history.
+  Run npm run check before declaring a change ready.
+  Keep at least 90% coverage per source file for statements, branches, functions, and lines.
+  Cover page behavior with isolated unit tests and verify the exact built artifact in browser tests.
+  Keep the PR description's complete commit list and preserve human-written text outside its managed section.
+  Master requires Build, Unit tests and coverage, and Browser tests before merging.
+  Use Squash and Merge only, with the PR title as the squash title and all commit details as its message.
+  Do not merge a PR without an explicit request.
+
+scripts:
+  - name: Install dependencies
+    command: npm ci --no-audit --no-fund
+  - name: Install test browser
+    command: npx playwright install chromium --only-shell
+  - name: Check build, tests, and coverage
+    command: npm run check
