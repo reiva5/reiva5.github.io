@@ -209,8 +209,8 @@
         .map((part) => part.trim())
         .join(" ") || null;
       const fields = [
-        ["Rank", user.rank],
-        ["Rating tertinggi", user.maxRating],
+        ["Highest Rank", user.maxRank],
+        ["Highest Rating", user.maxRating],
       ];
       return normalizeSnapshot({
         fullName,

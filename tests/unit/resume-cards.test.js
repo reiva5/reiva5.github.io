@@ -301,17 +301,17 @@ describe("public snapshots", () => {
 });
 
 describe("Codeforces adapter", () => {
-  it("uses the official API and displays only Rank and Rating tertinggi", async () => {
+  it("uses the official API and displays only Highest Rank and Highest Rating", async () => {
     await start();
     const card = cardFor("Codeforces");
     expect(fetchMock).toHaveBeenCalledWith(codeforcesURL, expect.objectContaining({ credentials: "omit" }));
     expect(card.name.textContent).toBe("Nama Pengguna");
     expect(card.handle.hidden).toBe(false);
     expect(Array.from(card.metadata.querySelectorAll("dt"), (term) => term.textContent)).toEqual([
-      "Rank", "Rating tertinggi",
+      "Highest Rank", "Highest Rating",
     ]);
     expect(Array.from(card.metadata.querySelectorAll("dd"), (entry) => entry.textContent)).toEqual([
-      "specialist", "2052",
+      "candidate master", "2052",
     ]);
     expect(card.status.textContent).toBe("API publik berhasil dimuat.");
     expect(Number.isFinite(Date.parse(card.updated.dateTime))).toBe(true);
@@ -331,8 +331,8 @@ describe("Codeforces adapter", () => {
   });
 
   it.each([
-    [{ rank: null, maxRating: 0 }, [["Rating tertinggi", "0"]]],
-    [{ rank: "specialist", maxRating: null }, [["Rank", "specialist"]]],
+    [{ maxRank: null, maxRating: 0 }, [["Highest Rating", "0"]]],
+    [{ maxRank: "candidate master", maxRating: null }, [["Highest Rank", "candidate master"]]],
   ])("shows only available requested fields, preserving an explicit zero: %j", async (fields, expected) => {
     data.set(codeforcesURL, codeforces(fields));
     await start();
@@ -347,7 +347,7 @@ describe("Codeforces adapter", () => {
   it("does not validate or render statistics outside the requested projection", async () => {
     data.set(codeforcesURL, codeforces({
       rating: {},
-      maxRank: {},
+      rank: {},
       contribution: {},
       organization: {},
     }));
@@ -355,7 +355,7 @@ describe("Codeforces adapter", () => {
     const card = cardFor("Codeforces");
     expect(card.element.dataset.state).toBe("ready");
     expect(Array.from(card.metadata.querySelectorAll("dt"), (term) => term.textContent)).toEqual([
-      "Rank", "Rating tertinggi",
+      "Highest Rank", "Highest Rating",
     ]);
   });
 

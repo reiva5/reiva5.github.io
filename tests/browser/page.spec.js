@@ -250,8 +250,8 @@ test("loads all card scripts, site logos, and public snapshots from the exact bu
   }
   await expect(page.locator("#card-codeforces")).toHaveAttribute("data-state", "ready");
   await expect(page.locator("#card-codeforces [data-card-name]")).toHaveText("Nama Pengguna");
-  await expect(page.locator("#card-codeforces [data-card-metadata] dt")).toHaveText(["Rank", "Rating tertinggi"]);
-  await expect(page.locator("#card-codeforces [data-card-metadata] dd")).toHaveText(["specialist", "2052"]);
+  await expect(page.locator("#card-codeforces [data-card-metadata] dt")).toHaveText(["Highest Rank", "Highest Rating"]);
+  await expect(page.locator("#card-codeforces [data-card-metadata] dd")).toHaveText(["candidate master", "2052"]);
   await expect(page.locator("#card-ktom")).toHaveAttribute("data-state", "authentication-required");
   await expect(page.locator("#card-ktom [data-card-status]")).toContainText("Perlu autentikasi");
   await expect(page.locator("#card-ktom [data-card-metadata]")).toContainText("1601");
