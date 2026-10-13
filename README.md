@@ -33,12 +33,16 @@ di browser.
 ```powershell
 npm test
 npm run test:coverage
+npm run report:coverage
 ```
 
 Test memakai DOM terisolasi untuk memeriksa navigasi, sidebar desktop,
 drawer mobile, ARIA, fokus keyboard, dan pergantian viewport. Coverage
-JavaScript halaman wajib minimal **90% per file** untuk statements, branches,
-functions, dan lines. Report HTML tersedia di `coverage/index.html`.
+JavaScript halaman dan helper pelaporan wajib minimal **90% per file** untuk
+statements, branches, functions, dan lines. Report HTML tersedia di
+`coverage/index.html`, hasil unit test di JSON/JUnit XML, dan badge SVG di
+`coverage/coverage.svg`. Badge menampilkan persentase terendah di antara seluruh
+file dan metric, bukan aggregate yang dapat menyembunyikan file kurang teruji.
 
 ## Browser tests
 
