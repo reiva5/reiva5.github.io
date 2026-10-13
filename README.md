@@ -1,5 +1,8 @@
 # reiva5.github.io
 
+[![CI master](https://github.com/reiva5/reiva5.github.io/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/reiva5/reiva5.github.io/actions/workflows/ci.yml?query=branch%3Amaster)
+[![Minimum source-file coverage](https://reiva5.github.io/coverage/coverage.svg)](https://reiva5.github.io/coverage/index.html)
+
 Website personal statis dengan gaya neo-brutalist yang terinspirasi Hacktoberfest.
 Halaman tetap menggunakan HTML, CSS, dan JavaScript tanpa dependency runtime.
 Tooling Node.js digunakan untuk memvalidasi dan menyiapkan hasil build.
@@ -11,6 +14,11 @@ Tooling Node.js digunakan untuk memvalidasi dan menyiapkan hasil build.
 
 Home masih berupa placeholder kosong. Resume sengaja dinonaktifkan dan tidak
 memiliki tujuan navigasi.
+
+Badge CI menunjukkan status push `master` terbaru. Badge dan report coverage
+berasal dari deployment `master` sukses terakhir, dan baru tersedia setelah
+deployment Actions pertama. Jika build atau test gagal, deployment sebelumnya
+tetap dipertahankan; hasil run yang gagal tersedia di Actions.
 
 ## Preview lokal
 
@@ -43,6 +51,20 @@ statements, branches, functions, dan lines. Report HTML tersedia di
 `coverage/index.html`, hasil unit test di JSON/JUnit XML, dan badge SVG di
 `coverage/coverage.svg`. Badge menampilkan persentase terendah di antara seluruh
 file dan metric, bukan aggregate yang dapat menyembunyikan file kurang teruji.
+Coverage mengukur JavaScript, bukan persentase HTML/CSS. Perilaku browser dan
+layout tetap diperiksa terpisah melalui Playwright.
+
+Baseline saat CI diperkenalkan: **76 unit tests dan 14 browser tests lulus**.
+
+| Metric JavaScript | Coverage baseline | Tercover / total |
+| --- | ---: | ---: |
+| Statements | 100% | 148 / 148 |
+| Branches | 100% | 111 / 111 |
+| Functions | 100% | 23 / 23 |
+| Lines | 100% | 142 / 142 |
+
+Angka tersebut adalah snapshot baseline, bukan pengganti report terbaru pada
+badge, Pages, dan artifact Actions.
 
 ## Browser tests
 
@@ -82,6 +104,11 @@ bukan build kedua. Hasil unit test JSON/JUnit, coverage HTML/LCOV/JSON/SVG,
 dan report browser disimpan sebagai artifact Actions selama 14 hari, termasuk
 saat test gagal. Ringkasan hasil tersedia pada halaman workflow run.
 
+`master` harus mewajibkan ketiga check tersebut melalui branch protection,
+termasuk untuk administrator, dan branch harus up-to-date sebelum merge.
+Threshold saja tidak mencegah merge jika required checks tidak diaktifkan.
+Perubahan tetap masuk melalui PR; tidak diperlukan approval dari reviewer lain.
+
 ## Deskripsi PR
 
 Workflow `PR description` mengisi daftar seluruh commit pada branch, termasuk
@@ -94,6 +121,15 @@ Workflow dengan izin tulis hanya checkout revision **base** yang terpercaya;
 tidak pernah menjalankan source atau dependency dari head PR. Otomatisasi ini
 mulai aktif setelah workflow tersebut tersedia di `master`; PR pertama yang
 memperkenalkannya masih memerlukan daftar commit saat dibuat.
+
+GitHub hanya mengizinkan **Squash and Merge**; merge commit dan rebase dinonaktifkan.
+Judul squash otomatis menggunakan **judul PR**, dan isi commit squash menggunakan
+**seluruh detail pesan commit**. Riwayat branch fitur tetap terdiri dari commit
+terpisah sesuai langkah implementasi sampai PR di-merge.
+
+Instruksi kontribusi dan perintah pemeriksaan manual untuk Copilot app ada di
+`.github/github-app.yml`. File ini tidak menggantikan pengaturan merge dan
+branch protection native pada GitHub.
 
 ## GitHub Pages
 
