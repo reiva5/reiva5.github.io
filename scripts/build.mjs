@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const output = join(root, "dist");
-const assets = ["index.html", "styles.css", "script.js", ".nojekyll"];
+const assets = ["index.html", "resume.html", "styles.css", "script.js", "resume.js", ".nojekyll"];
 
 await rm(output, { recursive: true, force: true });
 await mkdir(output);

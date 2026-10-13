@@ -253,34 +253,62 @@ a {
   box-shadow: 2px 2px 0 var(--ink);
 }
 
-.nav-number,
-.soon-tag {
+.nav-number {
   margin-left: auto;
   font-size: 0.58rem;
-}
-
-.nav-number {
   opacity: 0.75;
 }
 
-.nav-item-disabled {
-  background: transparent;
-  color: #ccd6d0;
-  cursor: not-allowed;
+.nav-item:not(.nav-item-active):hover {
+  background: var(--forest-dark);
 }
 
-.soon-tag {
-  padding: 2px 5px;
-  border: 1px solid #a1b5ab;
-  font-weight: 400;
-  text-transform: uppercase;
+.nav-submenu {
+  margin: 18px 0 0 24px;
+  padding: 0 0 0 16px;
+  border-left: 2px solid #a1b5ab;
+  list-style: none;
 }
 
-.nav-note {
-  margin: 7px 0 0;
-  padding-left: 14px;
-  color: #ccd6d0;
-  font-size: 0.72rem;
+.nav-sub-item {
+  display: block;
+  min-height: 44px;
+  padding: 11px 12px;
+  font-family: var(--mono-font);
+  font-size: 0.7rem;
+  text-decoration: none;
+}
+
+.nav-sub-item:hover,
+.nav-sub-item-active {
+  background: var(--forest-dark);
+}
+
+.nav-sub-item-active {
+  color: #ffcf69;
+  box-shadow: inset 3px 0 0 var(--ochre);
+}
+
+.resume-section + .resume-section {
+  margin-top: 48px;
+}
+
+.resume-heading {
+  margin-bottom: 24px;
+}
+
+.resume-heading h2 {
+  margin: 0;
+  font-family: var(--display-font);
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.resume-heading p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .sidebar-footer {
@@ -551,8 +579,7 @@ h1 {
     display: none;
   }
 
-  .nav-item-disabled,
-  .nav-note {
+  .nav-sub-item-active {
     color: var(--canvas);
   }
 }

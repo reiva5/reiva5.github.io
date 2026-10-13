@@ -69,15 +69,23 @@ test("expands content when the desktop sidebar is hidden and can reopen it", asy
   await expect(toggle).toBeFocused();
 });
 
-test("does not navigate when disabled Resume is clicked", async ({ page }) => {
+test("navigates to Resume and its three independently addressable sections", async ({ page }) => {
   await page.goto("/");
-  const resume = page.getByRole("button", { name: /Resume/ });
-  await expect(resume).toBeDisabled();
-  const url = page.url();
-  const box = await resume.boundingBox();
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  expect(page.url()).toBe(url);
-  await expect(page.getByRole("heading", { name: "Home", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Resume", exact: true }).click();
+  await expect(page).toHaveTitle("Cards | Resume | reiva5");
+  await expect(page.getByRole("heading", { name: "Resume", exact: true })).toBeVisible();
+  await expect(page.locator("#cards")).toBeVisible();
+  for (const [name, id] of [["Projects", "projects"], ["Page", "resume-page"], ["Cards", "cards"]]) {
+    await page.getByRole("link", { name, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`resume\\.html#${id}$`));
+    await expect(page.locator(`#${id}`)).toBeVisible();
+    await expect(page.getByRole("heading", { name, exact: true })).toBeFocused();
+    await expect(page.getByRole("link", { name, exact: true })).toHaveAttribute("aria-current", "location");
+  }
+  await page.goBack();
+  await expect(page.locator("#resume-page")).toBeVisible();
+  await page.getByRole("link", { name: "Home", exact: true }).click();
+  await expect(page).toHaveTitle("Home | reiva5");
 });
 
 test("keeps keyboard focus inside the mobile dialog and restores it on Escape", async ({ page }) => {
@@ -92,10 +100,14 @@ test("keeps keyboard focus inside the mobile dialog and restores it on Escape", 
   await expect(page.locator("#sidebar-close")).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Home", exact: true })).toBeFocused();
+  for (const name of ["Resume", "Cards", "Projects", "Page"]) {
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("link", { name, exact: true })).toBeFocused();
+  }
   await page.keyboard.press("Tab");
   await expect(page.locator(".brand")).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(page.getByRole("link", { name: "Home", exact: true })).toBeFocused();
+  await expect(page.getByRole("link", { name: "Page", exact: true })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(page.locator("#menu-toggle")).toBeFocused();
@@ -153,4 +165,32 @@ test("disables transitions for reduced motion", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("#menu-toggle")).toHaveCSS("transition-duration", "0s");
   await expect(page.locator(".nav-item-active")).toHaveCSS("transition-duration", "0s");
+});
+
+test("supports direct Resume links and closes the mobile drawer when a submenu is selected", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/resume.html#projects");
+  await expect(page.locator("#projects")).toBeVisible();
+  await expect(page.locator("#cards")).toBeHidden();
+  await page.locator("#menu-toggle").click();
+  await page.getByRole("link", { name: "Page", exact: true }).click();
+  await expect(page.locator("#sidebar")).toBeHidden();
+  await expect(page.locator("#resume-page-title")).toBeFocused();
+  expect(await page.locator("#page").evaluate((element) => element.inert)).toBe(false);
+  await page.locator(".skip-link").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#main-content")).toBeFocused();
+  await expect(page.locator("#resume-page")).toBeVisible();
+});
+
+test("keeps Resume sections reachable without JavaScript", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.route("https://fonts.googleapis.com/**", (route) => route.abort());
+  await page.goto("/resume.html");
+  for (const [name, id] of [["Cards", "cards"], ["Projects", "projects"], ["Page", "resume-page"]]) {
+    await page.getByRole("link", { name, exact: true }).click();
+    await expect(page.locator(`#${id}`)).toBeVisible();
+  }
+  await context.close();
 });

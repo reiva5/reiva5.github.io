@@ -62,6 +62,12 @@ toggleButton.addEventListener("click", () => {
 closeButton.addEventListener("click", closeSidebar);
 backdrop.addEventListener("click", closeSidebar);
 
+sidebar.addEventListener("click", (event) => {
+  if (mobileViewport.matches && sidebarOpen && event.target.closest("a[href]")) {
+    closeSidebar();
+  }
+});
+
 document.addEventListener("keydown", (event) => {
   if (!sidebarOpen) {
     return;

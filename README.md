@@ -8,12 +8,15 @@ Halaman tetap menggunakan HTML, CSS, dan JavaScript tanpa dependency runtime.
 Tooling Node.js digunakan untuk memvalidasi dan menyiapkan hasil build.
 
 - `index.html`: layout Home dan menu.
+- `resume.html`: Resume dengan submenu Cards, Projects, dan Page.
 - `styles.css`: tema, tipografi, dan layout responsif.
 - `script.js`: sidebar collapsible dan navigasi keyboard.
+- `resume.js`: navigasi antarbagian Resume melalui hash URL.
 - `scripts/build.mjs`: menyiapkan aset statis di `dist`.
 
-Home masih berupa placeholder kosong. Resume sengaja dinonaktifkan dan tidak
-memiliki tujuan navigasi.
+Home masih berupa placeholder kosong. Resume tersedia di `resume.html` dan
+dimulai dari Cards; Projects dan Page masih berupa placeholder. Submenu dapat
+dibuka langsung melalui hash URL, termasuk tanpa JavaScript.
 
 Badge CI menunjukkan status push `master` terbaru. Badge dan report coverage
 berasal dari deployment `master` sukses terakhir, dan baru tersedia setelah
@@ -80,7 +83,7 @@ npm run test:browser
 ```
 
 Test browser memeriksa hasil build, ukuran layar 320-1440px, batas breakpoint
-760px, navigasi keyboard nyata, modal mobile, Resume nonaktif, dan reduced motion.
+760px, navigasi keyboard nyata, modal mobile, submenu Resume, dan reduced motion.
 Test tetap berjalan tanpa Google Fonts. Report tersedia di `playwright-report`.
 
 Untuk menjalankan seluruh pemeriksaan lokal:

@@ -65,18 +65,18 @@ describe("page scaffold", () => {
     expect(document.querySelectorAll("nav .nav-item")).toHaveLength(2);
   });
 
-  it("keeps Resume disabled without a navigation target or click event", async () => {
+  it("links to Resume and all three submenus", async () => {
     await start();
-    const resume = document.querySelector(".nav-item-disabled");
-    const onClick = vi.fn();
-    resume.addEventListener("click", onClick);
-    const url = window.location.href;
-    resume.click();
-    expect(resume.disabled).toBe(true);
-    expect(resume.hasAttribute("href")).toBe(false);
-    expect(resume.getAttribute("aria-describedby")).toBe("resume-note");
-    expect(onClick).not.toHaveBeenCalled();
-    expect(window.location.href).toBe(url);
+    const resume = document.querySelector('a[href="./resume.html"]');
+    expect(resume.textContent).toContain("Resume");
+    expect(Array.from(document.querySelectorAll(".nav-sub-item"), (link) => [
+      link.textContent,
+      link.getAttribute("href"),
+    ])).toEqual([
+      ["Cards", "./resume.html#cards"],
+      ["Projects", "./resume.html#projects"],
+      ["Page", "./resume.html#resume-page"],
+    ]);
   });
 
   it("keeps script-dependent controls hidden before initialization", () => {
@@ -149,6 +149,14 @@ describe("desktop sidebar", () => {
     expect(document.activeElement).toBe(brand);
     expect(element("sidebar").hidden).toBe(false);
   });
+
+  it("does not collapse desktop navigation when a link is selected", async () => {
+    await start();
+    document.querySelector(".nav-sub-item").dispatchEvent(
+      new dom.window.MouseEvent("click", { bubbles: true, cancelable: true }),
+    );
+    expect(element("sidebar").hidden).toBe(false);
+  });
 });
 
 describe("mobile drawer", () => {
@@ -213,18 +221,17 @@ describe("mobile drawer", () => {
   it("wraps forward Tab from the last enabled item to the brand", async () => {
     await start(true);
     element("menu-toggle").click();
-    const home = document.querySelector(".nav-item-active");
-    home.focus();
+    document.querySelector(".nav-submenu li:last-child a").focus();
     expect(pressKey("Tab").defaultPrevented).toBe(true);
     expect(document.activeElement).toBe(document.querySelector(".brand"));
   });
 
-  it("wraps Shift+Tab from the brand to Home, skipping disabled Resume", async () => {
+  it("wraps Shift+Tab from the brand to the last Resume submenu", async () => {
     await start(true);
     element("menu-toggle").click();
     document.querySelector(".brand").focus();
     expect(pressKey("Tab", true).defaultPrevented).toBe(true);
-    expect(document.activeElement).toBe(document.querySelector(".nav-item-active"));
+    expect(document.activeElement).toBe(document.querySelector(".nav-submenu li:last-child a"));
   });
 
   it("does not intercept ordinary Tab navigation or unrelated keys inside the drawer", async () => {
@@ -234,6 +241,29 @@ describe("mobile drawer", () => {
     expect(pressKey("Tab", true).defaultPrevented).toBe(false);
     expect(pressKey("Enter").defaultPrevented).toBe(false);
     expect(document.activeElement).toBe(element("sidebar-close"));
+  });
+
+  it("closes when a nested navigation label is selected and preserves desktop preference", async () => {
+    await start(true);
+    element("menu-toggle").click();
+    document.querySelector(".nav-item-active span").dispatchEvent(
+      new dom.window.MouseEvent("click", { bubbles: true, cancelable: true }),
+    );
+    expect(element("sidebar").hidden).toBe(true);
+    expect(document.activeElement).toBe(element("menu-toggle"));
+    changeViewport(false);
+    expect(element("sidebar").hidden).toBe(false);
+  });
+
+  it("does not close on a non-link click or handle links while already closed", async () => {
+    await start(true);
+    document.querySelector(".brand").dispatchEvent(
+      new dom.window.MouseEvent("click", { bubbles: true, cancelable: true }),
+    );
+    expect(element("sidebar").hidden).toBe(true);
+    element("menu-toggle").click();
+    document.querySelector(".section-label").click();
+    expect(element("sidebar").hidden).toBe(false);
   });
 });
 
