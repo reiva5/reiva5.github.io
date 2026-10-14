@@ -65,6 +65,14 @@ function lineLinks(lines, sourceUrl) {
     : `[${first}-${last}](${sourceUrl}#L${first}-L${last})`).join(", ");
 }
 
+function runStamp(run) {
+  return `<!-- coverage-run:${run.id}:${run.run_attempt} -->`;
+}
+
+function runSummary(run) {
+  return `CI result: **${escapeMarkdown(run.conclusion)}**. Tested commit: [\`${run.head_sha.slice(0, 7)}\`](${run.html_url}).`;
+}
+
 function renderCoverageComment({ results, summary, lcov }, run, repositoryUrl) {
   if (!/^[a-f0-9]{40}$/i.test(run.head_sha)) {
     throw new TypeError("A valid tested commit SHA is required.");
@@ -93,8 +101,9 @@ function renderCoverageComment({ results, summary, lcov }, run, repositoryUrl) {
   }
   const body = [
     COMMENT_MARKER,
+    runStamp(run),
     testSummary,
-    `CI result: **${escapeMarkdown(run.conclusion)}**. Tested commit: [\`${run.head_sha.slice(0, 7)}\`](${run.html_url}).`,
+    runSummary(run),
     "",
     "| Source file | Statements | Branches | Functions | Lines | Covered / total lines |",
     "| --- | ---: | ---: | ---: | ---: | ---: |",
@@ -121,4 +130,86 @@ function renderCoverageComment({ results, summary, lcov }, run, repositoryUrl) {
   return body;
 }
 
-module.exports = { COMMENT_MARKER, readLineCoverage, renderCoverageComment };
+async function findCoverageArtifact({ github, context }) {
+  const run = context.payload.workflow_run;
+  const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+    ...context.repo, run_id: run.id, per_page: 100,
+  });
+  const matches = artifacts.filter((artifact) =>
+    artifact.name === `pr-coverage-${run.run_attempt}` && !artifact.expired);
+  if (matches.length > 1) {
+    throw new Error("Multiple coverage artifacts match this CI attempt.");
+  }
+  return matches[0]?.id ?? null;
+}
+
+async function publishCoverageComment({ github, context, core, readReports }) {
+  const run = context.payload.workflow_run;
+  if (run.event !== "pull_request" || run.status !== "completed" ||
+      run.path !== ".github/workflows/ci.yml" || !run.head_repository) {
+    core.notice("Only completed PR CI runs with an existing head repository can publish coverage.");
+    return;
+  }
+  const matchesPull = (pull) => pull.state === "open" &&
+    pull.base.ref === "master" &&
+    pull.base.repo.full_name === `${context.repo.owner}/${context.repo.repo}` &&
+    pull.head.repo?.id === run.head_repository.id &&
+    pull.head.ref === run.head_branch && pull.head.sha === run.head_sha;
+  const pulls = await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit, {
+    ...context.repo, commit_sha: run.head_sha, per_page: 100,
+  });
+  const candidates = pulls.filter(matchesPull);
+  if (candidates.length === 0) {
+    core.notice("No open master PR matches this CI run's repository, branch, and head SHA.");
+    return;
+  }
+  if (candidates.length !== 1) {
+    throw new Error("Multiple open PRs match this CI run; no coverage comment was changed.");
+  }
+  const [pull] = candidates;
+  const reports = await readReports();
+  const body = reports
+    ? renderCoverageComment(reports, run, `${context.serverUrl}/${run.head_repository.full_name}`)
+    : [
+      COMMENT_MARKER,
+      runStamp(run),
+      "## Unit tests and coverage",
+      "",
+      runSummary(run),
+      "",
+      "**Coverage unavailable:** this CI attempt did not provide downloadable coverage reports. Check the linked run for dependency, test-runner, reporting, or artifact errors; no passing coverage result is inferred.",
+    ].join("\n");
+  if (!reports) {
+    core.warning("Coverage reports are unavailable; the PR comment will not claim a passing result.");
+  }
+  const comments = await github.paginate(github.rest.issues.listComments, {
+    ...context.repo, issue_number: pull.number, per_page: 100,
+  });
+  const existing = comments.find((comment) => comment.user.type === "Bot" &&
+    comment.user.login === "github-actions[bot]" && comment.body?.startsWith(COMMENT_MARKER));
+  const { data: current } = await github.rest.pulls.get({ ...context.repo, pull_number: pull.number });
+  const { data: currentRun } = await github.rest.actions.getWorkflowRun({ ...context.repo, run_id: run.id });
+  if (!matchesPull(current) || current.base.sha !== pull.base.sha ||
+      currentRun.run_attempt !== run.run_attempt || currentRun.status !== "completed") {
+    core.notice("The PR or CI attempt changed while preparing coverage; its comment was not overwritten.");
+    return;
+  }
+  const previousRun = existing?.body.match(/^<!-- coverage-run:(\d+):(\d+) -->$/m);
+  if (previousRun && (Number(previousRun[1]) > run.id ||
+      (Number(previousRun[1]) === run.id && Number(previousRun[2]) > run.run_attempt))) {
+    core.notice("A newer CI result is already published; its coverage comment was not overwritten.");
+    return;
+  }
+  if (existing?.body === body) {
+    core.info("The PR coverage comment is already current.");
+    return;
+  }
+  if (existing) {
+    await github.rest.issues.updateComment({ ...context.repo, comment_id: existing.id, body });
+  } else {
+    await github.rest.issues.createComment({ ...context.repo, issue_number: pull.number, body });
+  }
+  core.info(`Published coverage for PR #${pull.number} at ${run.head_sha}.`);
+}
+
+module.exports = { COMMENT_MARKER, readLineCoverage, renderCoverageComment, findCoverageArtifact, publishCoverageComment };

@@ -1,13 +1,21 @@
 import { createRequire } from "node:module";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 const require = createRequire(import.meta.url);
 const coverageTools = require("../../scripts/coverage-badge.cjs");
 const commentTools = require("../../scripts/coverage-comment.cjs");
 const { METRICS } = coverageTools;
-const { COMMENT_MARKER, readLineCoverage, renderCoverageComment } = commentTools;
+const { COMMENT_MARKER, readLineCoverage, renderCoverageComment, findCoverageArtifact, publishCoverageComment } = commentTools;
 const repositoryUrl = "https://github.com/reiva5/reiva5.github.io";
 const run = {
+  id: 123,
+  run_attempt: 1,
+  event: "pull_request",
+  status: "completed",
+  path: ".github/workflows/ci.yml",
+  head_branch: "feature",
+  head_repository: { id: 20, full_name: "reiva5/reiva5.github.io" },
+  pull_requests: [],
   head_sha: "a".repeat(40),
   html_url: `${repositoryUrl}/actions/runs/123`,
   conclusion: "success",
@@ -69,6 +77,239 @@ describe("LCOV executable lines", () => {
     expect(() => readLineCoverage("end_of_record")).toThrow("source record is missing");
     expect(() => readLineCoverage("SF:file.js\nDA:1,1")).toThrow("incomplete or contains no source files");
     expect(() => readLineCoverage("TN:")).toThrow("incomplete or contains no source files");
+  });
+});
+
+const pull = {
+  number: 7,
+  state: "open",
+  base: { ref: "master", sha: "b".repeat(40), repo: { full_name: "reiva5/reiva5.github.io" } },
+  head: { ref: run.head_branch, sha: run.head_sha, repo: run.head_repository },
+};
+const botComment = (body = `${COMMENT_MARKER}\nOld coverage`) => ({
+  id: 50, user: { type: "Bot", login: "github-actions[bot]" }, body,
+});
+
+function publication() {
+  const context = {
+    repo: { owner: "reiva5", repo: "reiva5.github.io" },
+    serverUrl: "https://github.com",
+    payload: { workflow_run: structuredClone(run) },
+  };
+  const data = {
+    pulls: [structuredClone(pull)],
+    artifacts: [{ id: 70, name: "pr-coverage-1", expired: false }],
+    comments: [],
+  };
+  const github = {
+    rest: {
+      actions: {
+        listWorkflowRunArtifacts: vi.fn(),
+        getWorkflowRun: vi.fn().mockResolvedValue({ data: structuredClone(run) }),
+      },
+      repos: { listPullRequestsAssociatedWithCommit: vi.fn() },
+      pulls: { get: vi.fn().mockResolvedValue({ data: structuredClone(pull) }) },
+      issues: { listComments: vi.fn(), createComment: vi.fn(), updateComment: vi.fn() },
+    },
+    paginate: vi.fn(async (method) => {
+      if (method === github.rest.actions.listWorkflowRunArtifacts) return data.artifacts;
+      if (method === github.rest.repos.listPullRequestsAssociatedWithCommit) return data.pulls;
+      if (method === github.rest.issues.listComments) return data.comments;
+      throw new Error("Unexpected paginated API.");
+    }),
+  };
+  const core = { info: vi.fn(), notice: vi.fn(), warning: vi.fn() };
+  return { github, context, core, data, readReports: vi.fn(async () => reports()) };
+}
+
+describe("CI-attempt coverage artifacts", () => {
+  it("selects only unexpired reports for the exact run and attempt", async () => {
+    const options = publication();
+    options.context.payload.workflow_run.run_attempt = 2;
+    options.data.artifacts.push(
+      { id: 71, name: "pr-coverage-2", expired: true },
+      { id: 72, name: "pr-coverage-2", expired: false },
+      { id: 73, name: "unit-coverage", expired: false },
+    );
+    expect(await findCoverageArtifact(options)).toBe(72);
+    expect(options.github.paginate).toHaveBeenCalledWith(options.github.rest.actions.listWorkflowRunArtifacts, {
+      ...options.context.repo, run_id: run.id, per_page: 100,
+    });
+  });
+
+  it("returns no report instead of reusing a previous attempt's results", async () => {
+    const options = publication();
+    options.context.payload.workflow_run.run_attempt = 2;
+    expect(await findCoverageArtifact(options)).toBeNull();
+    options.data.artifacts = [];
+    expect(await findCoverageArtifact(options)).toBeNull();
+  });
+
+  it("rejects ambiguous artifacts and propagates API failures", async () => {
+    const options = publication();
+    options.data.artifacts.push({ id: 71, name: "pr-coverage-1", expired: false });
+    await expect(findCoverageArtifact(options)).rejects.toThrow("Multiple coverage artifacts");
+    options.github.paginate.mockRejectedValue(new Error("Artifacts API unavailable"));
+    await expect(findCoverageArtifact(options)).rejects.toThrow("Artifacts API unavailable");
+  });
+});
+
+describe("persistent PR coverage comments", () => {
+  it("finds the PR through its head commit even when workflow_run.pull_requests is empty", async () => {
+    const options = publication();
+    await publishCoverageComment(options);
+    expect(options.github.paginate).toHaveBeenCalledWith(options.github.rest.repos.listPullRequestsAssociatedWithCommit, {
+      ...options.context.repo, commit_sha: run.head_sha, per_page: 100,
+    });
+    expect(options.github.paginate).toHaveBeenCalledWith(options.github.rest.issues.listComments, {
+      ...options.context.repo, issue_number: 7, per_page: 100,
+    });
+    expect(options.github.rest.issues.createComment).toHaveBeenCalledWith({
+      ...options.context.repo, issue_number: 7, body: render(),
+    });
+    expect(options.github.rest.issues.updateComment).not.toHaveBeenCalled();
+  });
+
+  it("supports fork PRs without relying on a write token in the PR CI run", async () => {
+    const options = publication();
+    const fork = { id: 30, full_name: "contributor/site" };
+    options.context.payload.workflow_run.head_repository = fork;
+    options.data.pulls[0].head.repo = fork;
+    const current = structuredClone(options.data.pulls[0]);
+    options.github.rest.pulls.get.mockResolvedValue({ data: current });
+    await publishCoverageComment(options);
+    const [{ body }] = options.github.rest.issues.createComment.mock.calls[0];
+    expect(body).toContain(`https://github.com/contributor/site/blob/${run.head_sha}/js/home/index.js#L1-L2`);
+  });
+
+  it("updates only its own bot comment and leaves human comments and other bots alone", async () => {
+    const options = publication();
+    options.data.comments = [
+      { ...botComment(), id: 1, user: { type: "User", login: "reviewer" } },
+      { ...botComment(), id: 2, user: { type: "Bot", login: "another[bot]" } },
+      botComment("Unrelated bot comment"),
+      botComment(null),
+      botComment(),
+    ];
+    await publishCoverageComment(options);
+    expect(options.github.rest.issues.updateComment).toHaveBeenCalledWith({
+      ...options.context.repo, comment_id: 50, body: render(),
+    });
+    expect(options.github.rest.issues.createComment).not.toHaveBeenCalled();
+  });
+
+  it("is idempotent when the published result is already current", async () => {
+    const options = publication();
+    options.data.comments = [botComment(render())];
+    await publishCoverageComment(options);
+    expect(options.github.rest.issues.createComment).not.toHaveBeenCalled();
+    expect(options.github.rest.issues.updateComment).not.toHaveBeenCalled();
+    expect(options.core.info).toHaveBeenCalledWith("The PR coverage comment is already current.");
+  });
+
+  it.each([
+    { event: "push" },
+    { status: "in_progress" },
+    { path: ".github/workflows/other.yml" },
+    { head_repository: null },
+  ])("does not publish for an ineligible CI run: %j", async (fields) => {
+    const options = publication();
+    Object.assign(options.context.payload.workflow_run, fields);
+    await publishCoverageComment(options);
+    expect(options.github.paginate).not.toHaveBeenCalled();
+    expect(options.readReports).not.toHaveBeenCalled();
+    expect(options.core.notice).toHaveBeenCalled();
+  });
+
+  it.each([
+    (value) => { value.state = "closed"; },
+    (value) => { value.base.ref = "other"; },
+    (value) => { value.base.repo.full_name = "other/repo"; },
+    (value) => { value.head.repo = null; },
+    (value) => { value.head.repo.id = 999; },
+    (value) => { value.head.ref = "other-branch"; },
+    (value) => { value.head.sha = "c".repeat(40); },
+  ])("ignores unrelated, closed, or stale PRs: %#", async (change) => {
+    const options = publication();
+    change(options.data.pulls[0]);
+    await publishCoverageComment(options);
+    expect(options.readReports).not.toHaveBeenCalled();
+    expect(options.github.rest.issues.createComment).not.toHaveBeenCalled();
+    expect(options.core.notice).toHaveBeenCalled();
+  });
+
+  it("does not guess when multiple PRs match a run", async () => {
+    const options = publication();
+    options.data.pulls.push(structuredClone(pull));
+    await expect(publishCoverageComment(options)).rejects.toThrow("Multiple open PRs match");
+    expect(options.github.rest.issues.createComment).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    (value) => { value.head.sha = "c".repeat(40); },
+    (value) => { value.state = "closed"; },
+    (value) => { value.base.sha = "c".repeat(40); },
+  ])("does not overwrite the comment if the live PR changed during preparation: %#", async (change) => {
+    const options = publication();
+    const current = structuredClone(pull);
+    change(current);
+    options.github.rest.pulls.get.mockResolvedValue({ data: current });
+    await publishCoverageComment(options);
+    expect(options.github.rest.issues.createComment).not.toHaveBeenCalled();
+    expect(options.core.notice).toHaveBeenCalledWith(expect.stringContaining("changed while preparing coverage"));
+  });
+
+  it.each([{ run_attempt: 2 }, { status: "in_progress" }])(
+    "does not publish an attempt that has already been rerun: %j", async (fields) => {
+      const options = publication();
+      options.github.rest.actions.getWorkflowRun.mockResolvedValue({ data: { ...run, ...fields } });
+      await publishCoverageComment(options);
+      expect(options.github.rest.issues.createComment).not.toHaveBeenCalled();
+      expect(options.core.notice).toHaveBeenCalledWith(expect.stringContaining("changed while preparing coverage"));
+    },
+  );
+
+  it.each([[124, 1], [123, 2]])("does not replace a newer published run %i, attempt %i", async (id, attempt) => {
+    const options = publication();
+    options.data.comments = [botComment(`${COMMENT_MARKER}\n<!-- coverage-run:${id}:${attempt} -->\nNew coverage`)];
+    await publishCoverageComment(options);
+    expect(options.github.rest.issues.updateComment).not.toHaveBeenCalled();
+    expect(options.github.rest.issues.createComment).not.toHaveBeenCalled();
+    expect(options.core.notice).toHaveBeenCalledWith(expect.stringContaining("A newer CI result is already published"));
+  });
+
+  it.each([[122, 9], [123, 1]])("updates an older result from run %i, attempt %i", async (id, attempt) => {
+    const options = publication();
+    options.data.comments = [botComment(`${COMMENT_MARKER}\n<!-- coverage-run:${id}:${attempt} -->\nOld coverage`)];
+    await publishCoverageComment(options);
+    expect(options.github.rest.issues.updateComment).toHaveBeenCalledWith({
+      ...options.context.repo, comment_id: 50, body: render(),
+    });
+  });
+
+  it("replaces old passing results with an explicit unavailable report after an early CI failure", async () => {
+    const options = publication();
+    options.context.payload.workflow_run.conclusion = "failure";
+    options.readReports.mockResolvedValue(null);
+    options.data.comments = [botComment(render())];
+    await publishCoverageComment(options);
+    const [{ body }] = options.github.rest.issues.updateComment.mock.calls[0];
+    expect(body).toContain("**Coverage unavailable:**");
+    expect(body).toContain("CI result: **failure**");
+    expect(body).toContain(run.html_url);
+    expect(body).toContain("no passing coverage result is inferred");
+    expect(body).not.toContain("12/12 passed");
+    expect(options.core.warning).toHaveBeenCalled();
+  });
+
+  it("propagates report and API errors without posting a success-shaped fallback", async () => {
+    const options = publication();
+    options.readReports.mockRejectedValue(new Error("Invalid coverage JSON"));
+    await expect(publishCoverageComment(options)).rejects.toThrow("Invalid coverage JSON");
+    expect(options.github.rest.issues.createComment).not.toHaveBeenCalled();
+    options.readReports.mockResolvedValue(reports());
+    options.github.rest.issues.createComment.mockRejectedValue(new Error("Comment API unavailable"));
+    await expect(publishCoverageComment(options)).rejects.toThrow("Comment API unavailable");
   });
 });
 
