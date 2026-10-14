@@ -1,6 +1,8 @@
+import { createRequire } from "node:module";
 import { describe, expect, it, vi } from "vitest";
-import prTools from "../../scripts/pr-description.cjs";
 
+const require = createRequire(import.meta.url);
+const prTools = require("../../scripts/pr-description.cjs");
 const { START_MARKER, END_MARKER, formatCommits, updateDescription, collectCommits } = prTools;
 const commit = (number, message = `Step ${number}`) => ({
   sha: number.toString(16).padStart(40, "0"),

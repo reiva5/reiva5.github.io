@@ -78,4 +78,4 @@ async function collectCommits(readPage) {
   return commits;
 }
 
-module.exports = { START_MARKER, END_MARKER, formatCommits, updateDescription, collectCommits };
+module.exports = { START_MARKER, END_MARKER, escapeMarkdown, formatCommits, updateDescription, collectCommits };
