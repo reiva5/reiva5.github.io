@@ -163,6 +163,30 @@ administrators, and the branch must be up to date before merging. Coverage
 thresholds alone do not prevent merging if required checks are disabled.
 Changes still go through PRs; approval from another reviewer is not required.
 
+### PR coverage comments
+
+After a PR's `CI` run completes, the `PR coverage comment` workflow creates or
+updates one managed bot comment. It includes passed/failed/skipped assertion
+counts, all four coverage metrics overall and per source file, covered/total
+executable lines, and expandable covered/uncovered line ranges linked to the
+exact tested head SHA. These are all measured source files, not just changed
+lines. The comment links to the CI run and its full `unit-coverage` reports.
+
+PR CI also uploads the three raw JSON/LCOV inputs as
+`pr-coverage-<run_attempt>`. Attempt-specific names prevent reruns from
+accidentally reporting an earlier attempt's results. Test or coverage-gate
+failures are still reported; when CI cannot provide downloadable reports,
+the comment explicitly says coverage is unavailable rather than retaining
+a passing result. Closed PRs, stale heads, and older results are not updated.
+
+The write-enabled commenter uses `workflow_run` and checks out only the
+trusted default-branch revision. It reads artifacts as data, never checks
+out or executes PR code, and installs no PR dependencies. This also supports
+fork PRs whose CI tokens cannot write comments. It does not edit the PR
+description, change the three required checks, or grant write access to CI.
+Like other default-branch automation, comments start once the new workflow
+is available on `master`; the PR introducing it will not trigger it yet.
+
 ## PR descriptions
 
 The `PR description` workflow includes the complete branch commit list and

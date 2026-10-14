@@ -1,0 +1,67 @@
+name: PR coverage comment
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+concurrency:
+  group: pr-coverage-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Update PR coverage comment
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out only the trusted default-branch revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Locate reports for this CI attempt
+        id: artifact
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const { findCoverageArtifact } = require("./scripts/coverage-comment.cjs");
+            const id = await findCoverageArtifact({ github, context });
+            core.setOutput("id", id ?? "");
+      - name: Download only this attempt's coverage data
+        id: download
+        if: steps.artifact.outputs.id != ''
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          artifact-ids: ${{ steps.artifact.outputs.id }}
+          path: ${{ runner.temp }}/pr-coverage
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Create or update the managed coverage comment
+        if: ${{ !cancelled() && steps.artifact.outcome == 'success' }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        env:
+          COVERAGE_AVAILABLE: ${{ steps.download.outcome == 'success' }}
+          COVERAGE_DIRECTORY: ${{ runner.temp }}/pr-coverage
+        with:
+          script: |
+            const { readFile } = require("node:fs/promises");
+            const { join } = require("node:path");
+            const { publishCoverageComment } = require("./scripts/coverage-comment.cjs");
+            await publishCoverageComment({
+              github, context, core,
+              readReports: async () => {
+                if (process.env.COVERAGE_AVAILABLE !== "true") return null;
+                const [summary, results, lcov] = await Promise.all(
+                  ["coverage-summary.json", "unit-results.json", "lcov.info"].map((name) =>
+                    readFile(join(process.env.COVERAGE_DIRECTORY, name), "utf8")),
+                );
+                return { summary: JSON.parse(summary), results: JSON.parse(results), lcov };
+              },
+            });

@@ -1,6 +1,8 @@
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
-import coverageTools from "../../scripts/coverage-badge.cjs";
 
+const require = createRequire(import.meta.url);
+const coverageTools = require("../../scripts/coverage-badge.cjs");
 const { MIN_COVERAGE, METRICS, readCoverage, renderCoverageBadge, renderTestSummary } = coverageTools;
 const entry = (value) => Object.fromEntries(METRICS.map((metric) => [metric, { pct: value }]));
 const report = (value = 100) => ({ total: entry(value), "script.js": entry(value) });
