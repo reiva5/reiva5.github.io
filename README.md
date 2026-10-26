@@ -1,8 +1,14 @@
 # reiva5.github.io
 
+[![CI master](https://github.com/reiva5/reiva5.github.io/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/reiva5/reiva5.github.io/actions/workflows/ci.yml?query=branch%3Amaster)
+[![Minimum source-file coverage](https://reiva5.github.io/coverage/coverage.svg)](https://reiva5.github.io/coverage/index.html)
+
 A static personal website with a neo-brutalist style. The Resume page features
 profile cards for LinkedIn, Codeforces, LeetCode, Kaggle, and KTOM. Home,
 Projects, and Page currently remain placeholders.
+
+The CI badge shows the latest `master` push status. The coverage badge links to
+the report from the last successful `master` deployment.
 
 ## Local Preview
 
