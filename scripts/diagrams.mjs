@@ -13,6 +13,7 @@ export async function withDiagramRenderer(consume, launch = () => chromium.launc
     await page.evaluate(() => window.mermaid.initialize({
       startOnLoad: false,
       securityLevel: "strict",
+      htmlLabels: false,
       theme: "base",
       fontFamily: "Arial, sans-serif",
       themeVariables: {
@@ -29,7 +30,13 @@ export async function withDiagramRenderer(consume, launch = () => chromium.launc
     }));
     return await consume(async (source, id) => page.evaluate(async ({ source, id }) => {
       const { svg } = await window.mermaid.render(`diagram-${id}`, source);
-      return svg;
+      const container = document.createElement("div");
+      container.innerHTML = svg;
+      const element = container.querySelector("svg");
+      if (!element) {
+        throw new Error(`Diagram ${id} did not produce an SVG`);
+      }
+      return new XMLSerializer().serializeToString(element);
     }, { source, id }));
   } finally {
     await browser.close();
