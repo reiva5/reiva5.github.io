@@ -31,7 +31,11 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
       - name: Build the static site
-        run: npm run build
+        # Mermaid diagrams are compiled to SVG; no Mermaid runtime ships to Pages.
+        # Keep the browser version aligned with the exact-artifact browser tests.
+        run: |
+          npx playwright install --with-deps chromium --only-shell
+          npm run build
       - name: Preserve the exact build for browser tests and deployment
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:

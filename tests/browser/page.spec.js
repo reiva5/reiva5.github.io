@@ -127,14 +127,14 @@ test("keeps keyboard focus inside the mobile dialog and restores it on Escape", 
   await expect(page.locator("#sidebar-close")).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Home", exact: true })).toBeFocused();
-  for (const name of ["Resume", "Cards", "Projects", "Page"]) {
+  for (const name of ["Resume", "Cards", "Projects", "Page", "Project"]) {
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name, exact: true })).toBeFocused();
   }
   await page.keyboard.press("Tab");
   await expect(page.locator(".brand")).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(page.getByRole("link", { name: "Page", exact: true })).toBeFocused();
+  await expect(page.getByRole("link", { name: "Project", exact: true })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(page.locator("#menu-toggle")).toBeFocused();
@@ -419,9 +419,10 @@ test("uses English copy across Home and every Resume section", async ({ page }) 
   await page.goto("/resume.html#projects");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.getByRole("navigation", { name: "Main navigation" })).toBeVisible();
-  await expect(page.locator("#projects .empty-state")).toHaveText(
-    "Projects will be added later. We are starting with Cards.",
+  await expect(page.locator("#projects .cards-note")).toHaveText(
+    "Project cards, their current status, and technical design documents are available in Project.",
   );
+  await expect(page.getByRole("link", { name: "View Project", exact: true })).toHaveAttribute("href", "./project.html");
   await page.getByRole("link", { name: "Page", exact: true }).click();
   await expect(page.locator("#resume-page .empty-state")).toHaveText(
     "The full resume page will be added later. We are starting with Cards.",
