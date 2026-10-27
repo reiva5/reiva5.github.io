@@ -66,9 +66,8 @@ describe("Resume navigation", () => {
     expect(document.querySelector(".page-description").textContent).toBe(
       "Profiles, projects, and the journey in one place.",
     );
-    expect(document.querySelector("#projects .empty-state").textContent).toContain(
-      "Projects will be added later.",
-    );
+    expect(document.querySelector("#projects .cards-note").textContent).toContain("technical design documents");
+    expect(document.querySelector("#projects .profile-link").getAttribute("href")).toBe("./project.html");
     expect(document.querySelector("#resume-page .empty-state").textContent).toContain(
       "The full resume page will be added later.",
     );

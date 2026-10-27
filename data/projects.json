@@ -1,0 +1,9 @@
+[
+  {
+    "slug": "centralized-cloud-infrastructure",
+    "title": "Centralized Cloud Infrastructure",
+    "summary": "One repository to inventory and manage infrastructure across AWS, Azure, GCP, and Cloudflare with Terraform. Changes are reviewed through pull requests before deployment.",
+    "status": "Draft",
+    "technologies": ["Terraform", "HCP Terraform", "GitHub Actions", "AWS", "Azure", "GCP", "Cloudflare"]
+  }
+]

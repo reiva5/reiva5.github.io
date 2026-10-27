@@ -1,4 +1,5 @@
 import { JSDOM } from "jsdom";
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { escapeHtml, renderDocument, renderPage, renderProjectCards } from "../../scripts/projects.mjs";
 
@@ -59,6 +60,54 @@ describe("page template", () => {
   it("fails explicitly for unknown template placeholders", () => {
     expect(() => renderPage("{{unknown}}", { title: "", description: "", breadcrumb: "", body: "" }))
       .toThrow("Unknown page placeholder");
+    expect(() => renderPage("{{toString}}", { title: "", description: "", breadcrumb: "", body: "" }))
+      .toThrow("Unknown page placeholder");
+  });
+});
+
+describe("Project page behavior", () => {
+  it("initializes the shared sidebar from its own classic package entry", async () => {
+    vi.resetModules();
+    const initializeSidebar = vi.fn();
+    vi.stubGlobal("window", { SiteShell: { initializeSidebar } });
+    try {
+      await import("../../js/project/index.js");
+      expect(initializeSidebar).toHaveBeenCalledOnce();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("connects the actual project metadata and shared template with accessible navigation", () => {
+    const projects = JSON.parse(readFileSync(new URL("../../data/projects.json", import.meta.url), "utf8"));
+    const template = readFileSync(new URL("../../templates/project.html", import.meta.url), "utf8");
+    const document = documentFor(renderPage(template, {
+      title: "Project", description: "Projects", breadcrumb: "project", body: renderProjectCards(projects),
+    }));
+    expect(projects[0].status).toBe("Draft");
+    expect(document.querySelector(".project-status-draft").textContent).toBe("Draft");
+    expect(document.querySelector('a[aria-current="page"]').getAttribute("href")).toBe("./project.html");
+    expect(Array.from(document.querySelectorAll("script"), (script) => script.getAttribute("src")))
+      .toEqual(["./js/shared/sidebar.js", "./js/project/index.js"]);
+    for (const script of document.querySelectorAll("script")) {
+      expect(script.defer).toBe(true);
+      expect(script.getAttribute("type")).toBeNull();
+    }
+    expect(document.querySelector(".skip-link").getAttribute("href")).toBe("#main-content");
+  });
+
+  it("renders the complete approved Cloudflare TDD, retaining every section and all four diagrams", async () => {
+    const source = readFileSync(new URL("../../projects/centralized-cloud-infrastructure/tdd.md", import.meta.url), "utf8");
+    const { html, toc, diagramCount } = await renderDocument(source, async (text, index) => `./diagrams/diagram-${index}.svg`);
+    const document = documentFor(html + toc);
+    expect(diagramCount).toBe(4);
+    expect(document.querySelectorAll(".document-toc li")).toHaveLength(15);
+    expect(document.querySelectorAll("table")).toHaveLength(7);
+    expect(document.body.textContent).toContain("Cloudflare");
+    expect(document.body.textContent).not.toContain("CloudFront");
+    for (const link of document.querySelectorAll(".document-toc a")) {
+      expect(document.querySelector(link.getAttribute("href"))).not.toBeNull();
+    }
   });
 });
 

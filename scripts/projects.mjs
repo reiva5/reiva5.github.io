@@ -38,7 +38,7 @@ export function renderPage(template, { title, description, breadcrumb, body, bas
     base: escapeHtml(base),
   };
   return template.replace(/\{\{(\w+)\}\}/g, (placeholder, key) => {
-    if (!(key in values)) {
+    if (!Object.hasOwn(values, key)) {
       throw new Error(`Unknown page placeholder: ${placeholder}`);
     }
     return values[key];
@@ -90,6 +90,7 @@ export async function renderDocument(source, renderDiagram) {
             <img src="${escapeHtml(path)}" alt="${escapeHtml(caption)}" decoding="async">
           </div>
           <figcaption>${escapeHtml(caption)}</figcaption>
+          <a href="${escapeHtml(path)}">Open full-size diagram</a>
           <details><summary>View diagram source</summary><pre><code>${escapeHtml(token.text)}</code></pre></details>
         </figure>`;
       },

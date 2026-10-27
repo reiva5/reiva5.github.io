@@ -90,7 +90,8 @@ describe("page scaffold", () => {
     const home = document.querySelector('nav a[aria-current="page"]');
     expect(home.getAttribute("href")).toBe("./");
     expect(document.querySelector(".empty-state").textContent).toContain("No content yet.");
-    expect(document.querySelectorAll("nav .nav-item")).toHaveLength(2);
+    expect(document.querySelectorAll("nav .nav-item")).toHaveLength(3);
+    expect(document.querySelector('nav a[href="./project.html"]').textContent).toContain("Project");
   });
 
   it("links to Resume and all three submenus", async () => {
@@ -249,17 +250,17 @@ describe("mobile drawer", () => {
   it("wraps forward Tab from the last enabled item to the brand", async () => {
     await start(true);
     element("menu-toggle").click();
-    document.querySelector(".nav-submenu li:last-child a").focus();
+    document.querySelector('nav a[href="./project.html"]').focus();
     expect(pressKey("Tab").defaultPrevented).toBe(true);
     expect(document.activeElement).toBe(document.querySelector(".brand"));
   });
 
-  it("wraps Shift+Tab from the brand to the last Resume submenu", async () => {
+  it("wraps Shift+Tab from the brand to Project", async () => {
     await start(true);
     element("menu-toggle").click();
     document.querySelector(".brand").focus();
     expect(pressKey("Tab", true).defaultPrevented).toBe(true);
-    expect(document.activeElement).toBe(document.querySelector(".nav-submenu li:last-child a"));
+    expect(document.activeElement).toBe(document.querySelector('nav a[href="./project.html"]'));
   });
 
   it("does not intercept ordinary Tab navigation or unrelated keys inside the drawer", async () => {
