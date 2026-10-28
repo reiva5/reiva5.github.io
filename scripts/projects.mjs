@@ -21,6 +21,7 @@ export function renderProjectCards(projects) {
         <span class="project-status project-status-${project.status.toLowerCase()}">${project.status}</span>
       </header>
       <h2 id="${project.slug}-title">${escapeHtml(project.title)}</h2>
+      ${project.latestIteration ? `<span class="project-iteration">iteration-${escapeHtml(String(project.latestIteration))}</span>` : ""}
       <p>${escapeHtml(project.summary)}</p>
       <ul class="project-tags" aria-label="Technologies">${project.technologies.map((technology) =>
         `<li>${escapeHtml(technology)}</li>`).join("")}</ul>

@@ -2,7 +2,8 @@ import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { Script } from "node:vm";
-import { escapeHtml, renderDocument, renderPage, renderProjectCards } from "./projects.mjs";
+import { renderPage, renderProjectCards } from "./projects.mjs";
+import { buildProjectDocuments, projectIterations } from "./project-documents.mjs";
 import { withDiagramRenderer } from "./diagrams.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -44,7 +45,9 @@ await Promise.all(assets.map((asset) => copyFile(join(root, asset), join(output,
 
 const projects = JSON.parse(await readFile(join(root, "data", "projects.json"), "utf8"));
 const template = await readFile(join(root, "templates", "project.html"), "utf8");
-const projectList = renderProjectCards(projects);
+const projectList = renderProjectCards(projects.map((project) => ({
+  ...project, latestIteration: projectIterations(project).at(-1).number,
+})));
 await writeFile(join(output, "project.html"), renderPage(template, {
   title: "Project",
   description: "Projects, their current status, and technical design documents by reiva5.",
@@ -58,31 +61,7 @@ await writeFile(join(output, "project.html"), renderPage(template, {
 
 await withDiagramRenderer(async (renderDiagram) => {
   for (const project of projects) {
-    const directory = join(output, "projects", project.slug);
-    await mkdir(join(directory, "diagrams"), { recursive: true });
-    const sourcePath = join(root, "projects", project.slug, "tdd.md");
-    const source = await readFile(sourcePath, "utf8");
-    const { html, toc } = await renderDocument(source, async (diagram, index) => {
-      const svg = await renderDiagram(diagram, index);
-      await writeFile(join(directory, "diagrams", `diagram-${index}.svg`), svg);
-      return `./diagrams/diagram-${index}.svg`;
-    });
-    await copyFile(sourcePath, join(directory, "tdd.md"));
-    await writeFile(join(directory, "index.html"), renderPage(template, {
-      title: `${project.title} - TDD`,
-      description: project.summary,
-      breadcrumb: "project / technical design",
-      base: "../../",
-      body: `<header class="page-heading document-heading">
-        <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>Project / Technical design document</p>
-        <h1>${escapeHtml(project.title)}</h1>
-        <p class="page-description"><span class="project-status project-status-${project.status.toLowerCase()}">${project.status}</span> Technical design and implementation reference.</p>
-        <div class="document-actions">
-          <a class="profile-link" href="../../project.html">Back to Project</a>
-          <a class="profile-link" href="./tdd.md" download>Download Markdown</a>
-        </div>
-      </header>${toc}<article class="markdown-body" lang="id" aria-label="Technical design document">${html}</article>`,
-    }));
+    await buildProjectDocuments({ project, template, root, output, renderDiagram });
   }
 });
 

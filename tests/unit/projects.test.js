@@ -32,6 +32,13 @@ describe("static project cards", () => {
     expect(new Set(Array.from(document.querySelectorAll("h2"), (heading) => heading.id)).size).toBe(2);
   });
 
+  it("displays the latest published iteration without interpreting metadata as HTML", () => {
+    const document = documentFor(renderProjectCards([{ ...project, latestIteration: 3 }]));
+    expect(document.querySelector(".project-iteration").textContent).toBe("iteration-3");
+    const unsafe = documentFor(renderProjectCards([{ ...project, latestIteration: "<img src=x>" }]));
+    expect(unsafe.querySelector("img")).toBeNull();
+  });
+
   it("escapes metadata and rejects invalid routes and unknown status values", () => {
     expect(escapeHtml(`&<>"'`)).toBe("&amp;&lt;&gt;&quot;&#39;");
     const html = renderProjectCards([{
@@ -107,6 +114,25 @@ describe("Project page behavior", () => {
     expect(document.body.textContent).not.toContain("CloudFront");
     for (const link of document.querySelectorAll(".document-toc a")) {
       expect(document.querySelector(link.getAttribute("href"))).not.toBeNull();
+    }
+  });
+
+  it("renders the complete English translation with the same document structure and requirement identifiers", async () => {
+    const sources = ["tdd.md", "tdd.en.md"].map((name) =>
+      readFileSync(new URL(`../../projects/centralized-cloud-infrastructure/${name}`, import.meta.url), "utf8"));
+    const documents = await Promise.all(sources.map(async (source) => {
+      const { html, toc, diagramCount } = await renderDocument(source, async (text, index) => `./diagrams/diagram-${index}.svg`);
+      expect(diagramCount).toBe(4);
+      return documentFor(html + toc);
+    }));
+    for (const selector of ["h2", "h3", "h4", "h5", "h6", "table", ".document-toc li", "pre"]) {
+      expect(documents[1].querySelectorAll(selector).length).toBe(documents[0].querySelectorAll(selector).length);
+    }
+    expect(sources[1].match(/\b(?:FR|NFR|AC)-\d+\b/g)).toEqual(sources[0].match(/\b(?:FR|NFR|AC)-\d+\b/g));
+    expect(documents[1].body.textContent).toContain("Cloudflare");
+    expect(documents[1].body.textContent).not.toContain("CloudFront");
+    for (const link of documents[1].querySelectorAll(".document-toc a")) {
+      expect(documents[1].querySelector(link.getAttribute("href"))).not.toBeNull();
     }
   });
 });

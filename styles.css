@@ -608,6 +608,109 @@ a {
   box-shadow: 4px 4px 0 var(--sky);
 }
 
+.project-iteration {
+  display: inline-block;
+  margin-top: 16px;
+  font-family: var(--mono-font);
+  font-size: 0.75rem;
+}
+
+.document-navigation {
+  display: grid;
+  gap: 24px;
+  margin-block: 28px;
+  padding: clamp(18px, 3vw, 24px);
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  overflow-wrap: anywhere;
+}
+
+.document-navigation h2 {
+  margin: 0 0 12px;
+  font-family: var(--display-font);
+  font-size: 1.5rem;
+}
+
+.document-navigation ul,
+.iteration-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.document-navigation a,
+.iteration-actions span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font-size: 0.8rem;
+}
+
+.document-navigation a[aria-current="page"] {
+  background: var(--sky);
+  font-weight: 700;
+}
+
+.language-picker {
+  position: relative;
+  width: min(100%, 22rem);
+}
+
+.language-picker summary {
+  min-height: 44px;
+  padding: 12px;
+  border: 2px solid var(--ink);
+  background: var(--sky);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.document-navigation .language-options {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 2;
+  display: block;
+  max-height: min(16rem, 50vh);
+  margin-top: 6px;
+  padding: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  border: 2px solid var(--ink);
+  background: var(--canvas);
+  box-shadow: 4px 4px 0 var(--forest);
+}
+
+.language-options li + li {
+  margin-top: 6px;
+}
+
+.document-navigation .language-options a {
+  display: flex;
+  width: 100%;
+}
+
+.iteration-actions {
+  margin-top: 12px;
+}
+
+.iteration-actions span,
+.document-navigation p {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.document-navigation p {
+  margin: 12px 0 0;
+}
+
 .document-toc h2 {
   margin: 0 0 16px;
   font-family: var(--display-font);
