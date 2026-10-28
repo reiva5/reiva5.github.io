@@ -50,6 +50,13 @@ describe("static language and iteration links", () => {
     const iterations = projectIterations(project);
     const document = documentFor(renderDocumentNavigation(project, iterations, iterations[0], "en"));
     expect(document.querySelector('[aria-label="Document language"] [aria-current="page"]').textContent).toBe("English");
+    const picker = document.querySelector(".language-picker");
+    expect(picker.tagName).toBe("DETAILS");
+    expect(picker.open).toBe(false);
+    expect(picker.querySelector("summary").textContent).toBe("English");
+    expect(picker.querySelector("summary span").lang).toBe("en");
+    expect(picker.querySelector("ul").getAttribute("tabindex")).toBe("0");
+    expect(picker.querySelector("ul").getAttribute("aria-label")).toBe("Available translations");
     const indonesia = document.querySelector('[hreflang="id"]');
     expect(indonesia.lang).toBe("id");
     expect(indonesia.getAttribute("href")).toBe("/projects/example-project/iteration-1/id/");
@@ -77,6 +84,9 @@ describe("static language and iteration links", () => {
     expect(next.textContent).toBe('Next: iteration-2 (Bahasa <Indonesia> & "test")');
     expect(next.getAttribute("href")).toBe("/projects/example-project/iteration-2/id/");
     expect(document.querySelector("indonesia")).toBeNull();
+    const fallbackPage = documentFor(renderDocumentNavigation(project, iterations, iterations[1], "id"));
+    expect(fallbackPage.querySelector("summary").textContent).toBe('Bahasa <Indonesia> & "test"');
+    expect(fallbackPage.querySelector("indonesia")).toBeNull();
     const single = documentFor(renderDocumentNavigation(project, [iterations[0]], iterations[0], "id"));
     expect(single.querySelectorAll('[aria-disabled="true"]')).toHaveLength(2);
   });

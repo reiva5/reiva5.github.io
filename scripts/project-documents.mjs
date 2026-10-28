@@ -45,6 +45,7 @@ export function documentURL(project, iteration, code) {
 }
 
 export function renderDocumentNavigation(project, iterations, current, code) {
+  const selectedLanguage = current.languages.find((language) => language.code === code);
   const languages = current.languages.map((language) =>
     `<li><a href="${documentURL(project, current, language.code)}" lang="${language.code}" hreflang="${language.code}"${
       language.code === code ? ' aria-current="page"' : ""
@@ -59,7 +60,12 @@ export function renderDocumentNavigation(project, iterations, current, code) {
   };
   const index = iterations.indexOf(current);
   return `<div class="document-navigation">
-    <nav aria-label="Document language"><h2>Language</h2><ul>${languages}</ul></nav>
+    <nav aria-label="Document language"><h2>Language</h2>
+      <details class="language-picker">
+        <summary><span lang="${code}">${escapeHtml(selectedLanguage.label)}</span></summary>
+        <ul class="language-options" tabindex="0" aria-label="Available translations">${languages}</ul>
+      </details>
+    </nav>
     <nav aria-label="Document iteration"><h2>Iteration</h2>
       <ul>${iterations.map((iteration) => `<li>${iterationLink(iteration)}</li>`).join("")}</ul>
       <div class="iteration-actions">${

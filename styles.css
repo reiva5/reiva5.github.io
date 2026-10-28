@@ -657,6 +657,46 @@ a {
   font-weight: 700;
 }
 
+.language-picker {
+  position: relative;
+  width: min(100%, 22rem);
+}
+
+.language-picker summary {
+  min-height: 44px;
+  padding: 12px;
+  border: 2px solid var(--ink);
+  background: var(--sky);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.document-navigation .language-options {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 2;
+  display: block;
+  max-height: min(16rem, 50vh);
+  margin-top: 6px;
+  padding: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  border: 2px solid var(--ink);
+  background: var(--canvas);
+  box-shadow: 4px 4px 0 var(--forest);
+}
+
+.language-options li + li {
+  margin-top: 6px;
+}
+
+.document-navigation .language-options a {
+  display: flex;
+  width: 100%;
+}
+
 .iteration-actions {
   margin-top: 12px;
 }

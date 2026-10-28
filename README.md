@@ -50,6 +50,10 @@ Language links preserve the iteration; previous/next links preserve the language
 when available and otherwise explicitly name the target's default language.
 Only published versions are linked, and unavailable previous/next controls are
 disabled. All controls are ordinary links and work without JavaScript.
+The language picker displays the current language; click it (or focus it and
+press Enter/Space) to expand a height-limited, scrollable list of translations.
+Choose a language to navigate to its version of the same iteration. The picker
+uses native HTML disclosure behavior and remains usable without JavaScript.
 Centralized Cloud Infrastructure starts with iteration-1 in Bahasa Indonesia
 and English; no later iteration is published yet.
 

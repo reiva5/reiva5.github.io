@@ -72,10 +72,17 @@ test("switches the complete built TDD between Indonesian and English at stable i
   await page.goto(documentURL);
   const languages = page.getByRole("navigation", { name: "Document language" });
   await expect(languages.locator('[aria-current="page"]')).toHaveText("Bahasa Indonesia");
+  await expect(languages.locator(".language-options")).toBeHidden();
+  await expect(languages.locator("summary")).toHaveText("Bahasa Indonesia");
+  await languages.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(languages.getByRole("link", { name: "English", exact: true })).toBeVisible();
   await languages.getByRole("link", { name: "English", exact: true }).click();
   await expect(page).toHaveURL(`${documentURL}iteration-1/en/`);
   await expect(page.locator(".markdown-body")).toHaveAttribute("lang", "en");
   await expect(languages.locator('[aria-current="page"]')).toHaveText("English");
+  await expect(languages.locator("summary")).toHaveText("English");
+  await expect(languages.locator(".language-options")).toBeHidden();
   await expect(page.locator(".document-toc a")).toHaveCount(15);
   await expect(page.locator(".markdown-body table")).toHaveCount(7);
   for (const image of await page.locator(".document-diagram img").all()) {
@@ -92,6 +99,7 @@ test("switches the complete built TDD between Indonesian and English at stable i
     .toBe(await readFile(resolve("projects", "centralized-cloud-infrastructure", "tdd.en.md"), "utf8"));
   await page.reload();
   await expect(page.locator(".markdown-body")).toHaveAttribute("lang", "en");
+  await languages.locator("summary").click();
   await languages.getByRole("link", { name: "Bahasa Indonesia", exact: true }).click();
   await expect(page).toHaveURL(`${documentURL}iteration-1/id/`);
   await expect(page.locator(".markdown-body")).toHaveAttribute("lang", "id");
@@ -114,6 +122,9 @@ test("navigates built future iterations and additional languages with explicit t
         { code: "id", label: "Bahasa Indonesia", source: "first.id.md" },
         { code: "en", label: "English", source: "first.en.md" },
         { code: "fr", label: "Francais", source: "first.fr.md" },
+        ...["de", "es", "it", "ja", "ko", "nl", "pt", "zh"].map((code) => ({
+          code, label: `Test language ${code}`, source: "first.en.md",
+        })),
       ] },
       { number: 3, defaultLanguage: "id", languages: [
         { code: "id", label: "Bahasa Indonesia", source: "third.id.md" },
@@ -140,6 +151,30 @@ test("navigates built future iterations and additional languages with explicit t
     await expect(page.locator(".markdown-body")).toHaveText("Third iteration");
     await page.getByRole("link", { name: "Previous: iteration-1", exact: true }).click();
     await expect(page.locator(".markdown-body")).toHaveText("First iteration");
+    const picker = page.locator(".language-picker");
+    await picker.locator("summary").click();
+    const options = picker.locator(".language-options");
+    await expect(options).toBeVisible();
+    const dimensions = await options.evaluate((element) => ({
+      scroll: element.scrollHeight, height: element.clientHeight,
+      overflow: getComputedStyle(element).overflowY,
+      maximum: Math.min(256, innerHeight / 2),
+    }));
+    expect(dimensions.scroll).toBeGreaterThan(dimensions.height);
+    expect(dimensions.height).toBeLessThanOrEqual(dimensions.maximum);
+    expect(dimensions.overflow).toBe("auto");
+    await options.focus();
+    await page.keyboard.press("End");
+    await expect.poll(() => options.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await expect(picker.getByRole("link", { name: "Test language zh", exact: true })).toBeInViewport();
+    await page.setViewportSize({ width: 320, height: 640 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(await options.evaluate((element) => element.getBoundingClientRect().width <= innerWidth)).toBe(true);
+    await picker.locator("summary").click();
+    await expect(options).toBeHidden();
+    await picker.locator("summary").focus();
+    await page.keyboard.press("Space");
+    await expect(options).toBeVisible();
     await page.getByRole("link", { name: "Francais", exact: true }).click();
     await expect(page.locator(".markdown-body")).toHaveAttribute("lang", "fr");
     await page.getByRole("link", { name: "Next: iteration-3 (Bahasa Indonesia)", exact: true }).click();
@@ -241,7 +276,9 @@ test("keeps the project list, full Markdown content, anchors, and diagrams reada
   for (const image of await page.locator(".document-diagram img").all()) {
     await expect.poll(() => image.evaluate((element) => element.complete && element.naturalWidth > 0)).toBe(true);
   }
-  await page.getByRole("navigation", { name: "Document language" }).getByRole("link", { name: "English", exact: true }).click();
+  const languages = page.getByRole("navigation", { name: "Document language" });
+  await languages.locator("summary").click();
+  await languages.getByRole("link", { name: "English", exact: true }).click();
   await expect(page).toHaveURL(`${documentURL}iteration-1/en/`);
   await expect(page.locator(".markdown-body")).toHaveAttribute("lang", "en");
   await expect(page.locator(".document-diagram img")).toHaveCount(4);
@@ -249,7 +286,8 @@ test("keeps the project list, full Markdown content, anchors, and diagrams reada
   const heading = page.locator(await contentsLink.getAttribute("href"));
   await contentsLink.click();
   await expect(heading).toBeInViewport();
-  await page.getByRole("navigation", { name: "Document language" }).getByRole("link", { name: "Bahasa Indonesia", exact: true }).click();
+  await languages.locator("summary").click();
+  await languages.getByRole("link", { name: "Bahasa Indonesia", exact: true }).click();
   await expect(page).toHaveURL(`${documentURL}iteration-1/id/`);
   await expect(page.locator(".markdown-body")).toHaveAttribute("lang", "id");
   await context.close();
