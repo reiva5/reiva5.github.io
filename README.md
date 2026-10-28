@@ -33,6 +33,26 @@ each project's Markdown source lives in `projects/<slug>/tdd.md`. To add a proje
 add its metadata and document, then rebuild. Supported status values are exactly
 `Draft`, `Proposed`, and `Implemented`; invalid status values fail the build.
 
+Each project declares an `iterations` array in its metadata. Each entry has a
+positive, unique `number`, a `defaultLanguage`, and a nonempty `languages` array
+of `{ "code": "en", "label": "English", "source": "tdd.en.md" }` entries.
+Language codes are lowercase language tags such as `id`, `en`, or `pt-br`;
+sources are Markdown paths relative to `projects/<slug>/` (no parent traversal).
+Add translations to the same iteration, and add later iterations as new entries
+with their own sources; keep published sources unchanged to preserve history.
+Duplicate iterations/languages, missing defaults, unsafe paths, and missing
+source files fail the build.
+
+The project card shows the latest published `iteration-n`. Its existing
+`projects/<slug>/` URL opens that iteration in its default language, while
+`projects/<slug>/iteration-<n>/<code>/` is a stable link to a specific version.
+Language links preserve the iteration; previous/next links preserve the language
+when available and otherwise explicitly name the target's default language.
+Only published versions are linked, and unavailable previous/next controls are
+disabled. All controls are ordinary links and work without JavaScript.
+Centralized Cloud Infrastructure starts with iteration-1 in Bahasa Indonesia
+and English; no later iteration is published yet.
+
 The build converts GFM Markdown into sanitized, themed HTML with a table of
 contents, scrollable tables/code, and local SVG Mermaid diagrams. The original
 Markdown is also available to download. Node dependencies and Chromium are
