@@ -7,7 +7,11 @@ A static personal website with a neo-brutalist style. The Resume page features
 profile cards for LinkedIn, Codeforces, LeetCode, Kaggle, and KTOM. Project lists
 work as cards with Draft (yellow), Proposed (blue), or Implemented (green) status.
 Its first project is Centralized Cloud Infrastructure, with a styled technical
-design document covering AWS, Azure, GCP, and Cloudflare. Home and the complete
+design document covering AWS, Azure, GCP, and standalone Cloudflare Workers.
+Iteration-1 keeps Cloudflare as an independent Terraform provider without
+authoritative DNS, WAF, rulesets/security, or proxy/CDN integration; Workers use
+account-scoped API tokens without requiring zone IDs or zone permissions.
+Home and the complete
 resume Page remain placeholders.
 
 The CI badge shows the latest `master` push status. The coverage badge links to
