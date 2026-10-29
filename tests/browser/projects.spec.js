@@ -32,7 +32,8 @@ test("navigates from Home to the project card and its themed, static TDD", async
   await expect(card).toBeVisible();
   await expect(card.locator(".project-status")).toHaveText("Draft");
   await expect(card.locator(".project-status")).toHaveCSS("background-color", "rgb(245, 183, 38)");
-  await expect(card).toContainText("Cloudflare");
+  await expect(card).toContainText("standalone Cloudflare Workers");
+  await expect(card.locator(".project-tags")).toContainText("Cloudflare Workers");
   await expect(card.locator(".project-iteration")).toHaveText("iteration-1");
   await page.screenshot({ path: "test-results/project-desktop.png" });
   await card.getByRole("link", { name: "Read TDD" }).click();
@@ -208,6 +209,45 @@ test("ships the exact Markdown source and full-size SVG with the built document"
   await page.getByRole("link", { name: "Back to Project" }).click();
   await expect(page).toHaveURL("/project.html");
 });
+
+for (const language of ["id", "en"]) {
+  test(`publishes independent Workers endpoints and account-only credentials in the built ${language} TDD`, async ({ page, request }) => {
+    await page.goto(`${documentURL}iteration-1/${language}/`);
+    const document = page.locator(".markdown-body");
+    await expect(document).toHaveAttribute("lang", language);
+    await expect(document).toContainText("cloudflare\\workers\\standalone-api\\prod");
+    await expect(document).toContainText("cci-cloudflare-workers-standalone-api-prod");
+    await expect(document).toContainText("CLOUDFLARE_API_TOKEN");
+    await expect(document).toContainText("zone permissions");
+    await expect(document).not.toContainText("cloudflare\\dns");
+    const dataPlane = page.locator(".document-diagram").nth(1);
+    const response = await request.get(new URL(await dataPlane.locator("img").getAttribute("src"), page.url()).href);
+    expect(response.ok()).toBe(true);
+    const svg = await response.text();
+    const graph = await page.evaluate((source) => {
+      const document = new DOMParser().parseFromString(source, "image/svg+xml");
+      return {
+        nodes: Array.from(document.querySelectorAll("g.node"), (node) =>
+          Array.from(node.querySelectorAll("text > tspan"), (line) => line.textContent).join(" ")),
+        edges: Array.from(document.querySelectorAll(".edgePaths path"), (edge) => ({
+          id: edge.id, path: edge.getAttribute("d"),
+        })),
+      };
+    }, svg);
+    expect(graph.nodes).toHaveLength(5);
+    for (const endpoint of ["AWS endpoint", "Azure endpoint", "GCP endpoint", "standalone Workers - workers.dev"]) {
+      expect(graph.nodes.some((label) => label.includes(endpoint))).toBe(true);
+    }
+    expect(graph.nodes.join(" ")).not.toMatch(/DNS|WAF|rulesets|proxy|cache/);
+    expect(graph.edges).toHaveLength(4);
+    for (const [index, target] of ["AWSWorkload", "AzureWorkload", "GCPWorkload", "CFWorker"].entries()) {
+      expect(graph.edges[index].id).toContain(`User_${target}`);
+      expect(graph.edges[index].path).toBeTruthy();
+    }
+    await expect.poll(() => dataPlane.locator("img").evaluate((image) => image.complete && image.naturalWidth > 0)).toBe(true);
+    await dataPlane.screenshot({ path: `test-results/workers-data-plane-${language}.png` });
+  });
+}
 
 test("provides distinct yellow, blue, and green status styles with visible text labels", async ({ page }) => {
   await page.goto("/project.html");

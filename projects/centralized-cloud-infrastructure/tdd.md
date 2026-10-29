@@ -10,7 +10,7 @@ Format diagram: Mermaid, agar dapat dirender langsung dalam Markdown GitHub
 
 Centralized Cloud Infrastructure adalah repository privat untuk mendokumentasikan dan mengelola infrastruktur lintas cloud menggunakan Terraform. Struktur utamanya mengikuti urutan **cloud provider -> layanan -> instance layanan -> environment**.
 
-GitHub menjadi sumber konfigurasi, review, dan orkestrasi workflow. **HCP Terraform**, sebelumnya dikenal sebagai Terraform Cloud, menjalankan Terraform secara remote serta menyimpan state, riwayat run, dan konfigurasi autentikasi provider. AWS, Azure, GCP, dan **Cloudflare** adalah provider yang dikelola. Cloudflare merupakan provider tersendiri untuk layanan seperti DNS, Workers, dan rulesets/security, bukan layanan milik AWS.
+GitHub menjadi sumber konfigurasi, review, dan orkestrasi workflow. **HCP Terraform**, sebelumnya dikenal sebagai Terraform Cloud, menjalankan Terraform secara remote serta menyimpan state, riwayat run, dan konfigurasi autentikasi provider. AWS, Azure, GCP, dan **Cloudflare** adalah provider yang dikelola secara independen. Pada iteration-1, workload Cloudflare berfokus pada standalone Workers, bukan layanan milik AWS atau lapisan wajib di depan AWS/Azure/GCP.
 
 Perubahan infrastruktur harus melewati PR menuju `main`. PR menghasilkan speculative plan untuk direview. Setelah PR di-merge, workflow deployment membuat plan baru dari commit hasil merge, kemudian meng-apply plan tersebut dalam HCP Terraform run yang sama.
 
@@ -20,7 +20,7 @@ Dokumen ini adalah rancangan repository baru. Tidak ada pembuatan repository, pe
 
 ### 2.1 Tujuan
 
-1. Mengetahui provider, account/subscription/project/zone, layanan, dan resource yang dimiliki beserta status pengelolaannya.
+1. Mengetahui provider, account/subscription/project, layanan, dan resource yang dimiliki beserta status pengelolaannya.
 2. Menambahkan atau mengubah layanan melalui konfigurasi Terraform yang terorganisasi.
 3. Memperlihatkan dampak perubahan sebelum merge dan memblokir merge ketika validasi atau plan gagal.
 4. Menjalankan apply otomatis hanya untuk perubahan yang sudah di-merge ke `main`.
@@ -35,6 +35,7 @@ Dokumen ini adalah rancangan repository baru. Tidak ada pembuatan repository, pe
 - HCP Terraform yang dimaksud adalah layanan SaaS untuk remote execution dan remote state; bukan instalasi Terraform Enterprise mandiri.
 - Initial setup HCP, trust OIDC cloud, dan GitHub secrets/environment dilakukan melalui bootstrap terkontrol.
 - AWS, Azure, dan GCP memakai dynamic provider credentials OIDC. Cloudflare memakai scoped API token yang disimpan secara sensitif di HCP; dukungan OIDC native untuk Cloudflare tidak diasumsikan.
+- Cloudflare Workers menggunakan scope account dan endpoint standalone `workers.dev`; zone ID dan zone permissions tidak diperlukan.
 - Penambahan provider berikutnya didukung pola repository, tetapi tidak semua provider pasti mendukung dynamic credentials native.
 - Fitur RBAC, proteksi branch/environment, audit, dan kapasitas run harus diperiksa terhadap paket GitHub dan HCP Terraform yang dipilih. Tidak diasumsikan seluruhnya tersedia gratis.
 
@@ -45,6 +46,7 @@ Dokumen ini adalah rancangan repository baru. Tidak ada pembuatan repository, pe
 - Penemuan otomatis seluruh resource di semua cloud tanpa batas cakupan dan izin.
 - Migrasi otomatis resource existing tanpa peninjauan dan import.
 - Transaksi atomik lintas-workspace atau lintas-provider.
+- Cloudflare authoritative DNS, WAF, rulesets/security, serta integrasi proxy/CDN di depan workload cloud lain tidak termasuk scope iteration-1.
 - Scheduled Terraform plan dan apply manual umum. Penambahan fitur tersebut perlu revisi aturan trigger.
 - Merge queue GitHub. Jika nanti digunakan, event `merge_group` harus dirancang dan diuji tersendiri.
 
@@ -55,7 +57,7 @@ Dokumen ini adalah rancangan repository baru. Tidak ada pembuatan repository, pe
 | R-01 | Mengetahui cloud yang dimiliki | Registry provider dan target cloud, daftar deployment unit, serta laporan discovered/managed dengan waktu pemeriksaan terakhir. |
 | R-02 | Struktur provider dan layanan | Root disusun sebagai provider, layanan, instance, dan environment. |
 | R-03 | Menambah layanan | Template root/module, registrasi deployment unit, provisioning workspace/identity melalui onboarding, lalu PR. |
-| R-04 | Terraform untuk semua cloud | Terraform provider resmi/terverifikasi, versi terkontrol, module reusable, dan HCP remote execution. |
+| R-04 | Terraform untuk semua cloud | Terraform provider resmi/terverifikasi untuk AWS/Azure/GCP dan standalone Cloudflare Workers, versi terkontrol, module reusable, dan HCP remote execution. |
 | R-05 | Plan per direktori yang berubah dan komentar PR | Change detector memetakan perubahan ke root beserta dependency, menjalankan speculative plan, lalu memublikasikan ringkasan before/after yang aman. |
 | R-06 | Plan hanya untuk PR menuju `main` | Pre-merge plan hanya pada event PR dengan base `main`; tidak ada plan pada push feature branch, PR ke branch lain, atau jadwal. Pengecualian teknis deployment dijelaskan pada bagian 8. |
 | R-07 | Apply hanya setelah PR di-merge ke `main` | Push `main` harus diverifikasi berasal dari merged PR; apply mengambil konfigurasi commit hasil merge tersebut. |
@@ -81,7 +83,7 @@ Dokumen ini adalah rancangan repository baru. Tidak ada pembuatan repository, pe
 | AWS | Contoh resource: ECS, IAM, VPC, dan S3. |
 | Azure | Contoh resource: Azure Functions, Storage Account, dan networking. |
 | GCP | Contoh resource: Cloud Run, Cloud Storage, dan networking. |
-| Cloudflare | Provider `cloudflare/cloudflare` untuk DNS, Workers, serta rulesets/security sesuai kebutuhan dan dukungan API/provider. |
+| Cloudflare | Provider `cloudflare/cloudflare` untuk standalone Workers pada scope account, independen dari workload AWS/Azure/GCP. |
 | Inventory reporter | Menggabungkan registry, resource terkelola, dan hasil discovery terbatas; bukan pengganti state. |
 
 ### 4.2 Diagram komponen/control plane
@@ -124,7 +126,7 @@ flowchart LR
 
     subgraph Cloudflare["Cloudflare"]
         CFAPI["Cloudflare API<br/>scoped API token"]
-        CFResources["DNS - Workers - rulesets"]
+        CFResources["Standalone Workers<br/>scope account"]
     end
 
     Owner --> Repo
@@ -155,23 +157,20 @@ flowchart LR
 
 Diagram ini menggambarkan management plane. Tidak berarti trafik aplikasi harus melewati GitHub atau HCP Terraform.
 
-### 4.3 Posisi Cloudflare pada data plane
+### 4.3 Endpoint workload independen pada data plane
 
-Cloudflare dikelola sebagai provider tersendiri, tetapi tidak semua layanan harus digunakan. DNS dapat dipakai tanpa proxy/CDN; proxy, cache, WAF, dan Workers hanya diaktifkan sesuai kebutuhan dan paket layanan. Terraform mengonfigurasi resource Cloudflare, bukan menjadi jalur trafik pengguna.
+AWS, Azure, GCP, dan Cloudflare menyediakan endpoint workload masing-masing. Standalone Workers melayani request melalui endpoint `workers.dev` tanpa memerlukan origin di cloud lain. Terraform mengonfigurasi resource setiap provider, bukan menjadi jalur trafik pengguna.
 
 ```mermaid
 flowchart LR
     User["Pengguna aplikasi"]
-    DNS["Cloudflare authoritative DNS"]
-    Edge["Cloudflare edge<br/>proxy - cache - WAF<br/>opsional: Workers"]
-    User -.->|"resolusi DNS melalui resolver"| DNS
-    User -->|"HTTP/HTTPS jika proxied"| Edge
-    Edge -->|"origin yang dipilih"| AWSOrigin["AWS endpoint"]
-    Edge -->|"origin yang dipilih"| AzureOrigin["Azure endpoint"]
-    Edge -->|"origin yang dipilih"| GCPOrigin["GCP endpoint"]
+    User -->|"HTTP/HTTPS"| AWSWorkload["AWS endpoint<br/>ECS"]
+    User -->|"HTTP/HTTPS"| AzureWorkload["Azure endpoint<br/>Azure Functions"]
+    User -->|"HTTP/HTTPS"| GCPWorkload["GCP endpoint<br/>Cloud Run"]
+    User -->|"HTTP/HTTPS"| CFWorker["Cloudflare endpoint<br/>standalone Workers - workers.dev"]
 ```
 
-Origin AWS/Azure/GCP adalah alternatif, bukan kewajiban menggunakan ketiganya sekaligus. Pada record DNS-only, client mengakses origin langsung tanpa melewati Cloudflare proxy. Desain lanjutan perlu menentukan domain/zone, DNS delegation, status proxy tiap record, TLS, caching, origin protection, egress cost, dan pencegahan bypass origin. Workers juga dapat melayani request tanpa origin cloud lain.
+Keempat endpoint adalah alternatif independen, bukan rantai trafik atau kewajiban menggunakan semuanya sekaligus. Cloudflare tidak diwajibkan menjadi proxy/CDN bagi AWS/Azure/GCP. Cloudflare authoritative DNS, WAF, dan rulesets/security tidak dikonfigurasi pada iteration-1; standalone Workers tidak memerlukan zone ID atau zone permissions.
 
 ## 5. Struktur repository dan deployment unit
 
@@ -202,14 +201,8 @@ centralized-cloud-infrastructure
 |       `-- reporting
 |           `-- prod
 |-- cloudflare
-|   |-- dns
-|   |   `-- public-site
-|   |       `-- prod
-|   |-- workers
-|   |   `-- edge-api
-|   |       `-- prod
-|   `-- rulesets
-|       `-- public-site
+|   `-- workers
+|       `-- standalone-api
 |           `-- prod
 |-- modules
 |   |-- aws
@@ -224,7 +217,7 @@ centralized-cloud-infrastructure
 
 Contoh root: `aws\ecs\payments\prod`.
 
-Contoh Cloudflare: `cloudflare\dns\public-site\prod`, dengan workspace `cci-cloudflare-dns-public-site-prod`. Target Cloudflare mengacu pada account dan, untuk resource zone-scoped, zone ID; resource account-scoped seperti Workers tidak dipaksakan memiliki zone. Layanan global menggunakan region `global` atau atribut region yang tidak berlaku secara eksplisit.
+Contoh Cloudflare: `cloudflare\workers\standalone-api\prod`, dengan workspace `cci-cloudflare-workers-standalone-api-prod`. Target Cloudflare mengacu pada account ID untuk standalone Workers; tidak memerlukan zone ID atau zone permissions. Layanan global menggunakan region `global` atau atribut region yang tidak berlaku secara eksplisit.
 
 Setiap root memiliki `main.tf`, `providers.tf`, `versions.tf`, `variables.tf`, `outputs.tf`, `.terraform.lock.hcl`, dan README singkat. Variable nonrahasia boleh disimpan sebagai konfigurasi versioned; secret tidak boleh masuk repository.
 
@@ -254,9 +247,24 @@ deployments:
       - aws-vpc-core-prod
     module_dependencies:
       - 'modules\aws\ecs'
+  - id: cloudflare-workers-standalone-api-prod
+    root: 'cloudflare\workers\standalone-api\prod'
+    provider: cloudflare
+    service: workers
+    environment: prod
+    target_ref: cloudflare-production
+    region: global
+    hcp_workspace: cci-cloudflare-workers-standalone-api-prod
+    lifecycle: active
+    owner: platform
+    depends_on: []
+    module_dependencies:
+      - 'modules\cloudflare\workers'
 ```
 
 Contoh menggunakan notasi path dokumentasi Windows. Implementasi menormalisasi Git paths secara konsisten ke format Git/API sebelum melakukan matching.
+
+Target `cloudflare-production` memetakan account ID yang disetujui; endpoint `workers.dev` tidak memerlukan zone ID atau dependency ke root cloud lain.
 
 Schema wajib memvalidasi ID unik, root aman, workspace unik, target dikenal, dependency dikenal, dan tidak ada siklus. Root, workspace, target, dan identity binding tidak boleh dipilih secara bebas oleh input PR.
 
@@ -276,7 +284,7 @@ Terraform tidak otomatis mengetahui semua layanan yang pernah dibuat melalui con
 
 | Lapisan inventaris | Sumber | Makna |
 |---|---|---|
-| Declared targets | Registry provider dan account/subscription/project/zone | Cloud yang diketahui dan diizinkan untuk proyek. |
+| Declared targets | Registry provider dan account/subscription/project | Cloud yang diketahui dan diizinkan untuk proyek; Cloudflare memakai scope account. |
 | Desired configuration | Root Terraform dan deployment registry | Resource yang ingin dikelola, termasuk yang belum berhasil dibuat. |
 | Managed actual | HCP state dan status apply terakhir | Resource yang tercatat dalam state; belum tentu mencerminkan kondisi live terkini. |
 | Discovered actual | Cloud-native inventory API dengan akses baca | Resource yang terlihat pada scope dan waktu pemeriksaan tertentu. |
@@ -285,7 +293,7 @@ Kolom laporan minimal: provider, target alias/ID, service, resource ID, region, 
 
 Status contoh: `managed`, `discovered-unmanaged`, `declared-not-applied`, `missing-or-inaccessible`, dan `unknown`. Ketidakhadiran di hasil discovery tidak langsung berarti resource telah dihapus.
 
-Discovery awal menggunakan AWS Resource Explorer atau inventaris per-service yang relevan, Azure Resource Graph, GCP Cloud Asset Inventory, serta Cloudflare API untuk account/zone dan layanan seperti DNS, Workers, dan rulesets. Coverage API, region, resource type, permission, dan pagination harus dilaporkan; jangan mengklaim hasilnya sebagai daftar lengkap tanpa bukti cakupan.
+Discovery awal menggunakan AWS Resource Explorer atau inventaris per-service yang relevan, Azure Resource Graph, GCP Cloud Asset Inventory, serta Cloudflare API untuk Workers pada account yang disetujui. Discovery Cloudflare tidak memerlukan daftar zone atau zone permissions. Coverage API, region, resource type, permission, dan pagination harus dilaporkan; jangan mengklaim hasilnya sebagai daftar lengkap tanpa bukti cakupan.
 
 Inventory read-only boleh berjalan terjadwal/manual tanpa menjalankan Terraform plan/apply. Identitasnya terpisah: GitHub OIDC menuju role discovery read-only pada AWS/Azure/GCP, dan scoped API token read-only khusus inventory Cloudflare. Jika reporter Cloudflare berjalan di GitHub, token inventory tersedia hanya pada job/environment terproteksi melalui secret store yang disetujui; jangan memakai token write milik Terraform. Ini berbeda dari OIDC HCP untuk Terraform run. Data dan artefak inventory dibatasi aksesnya.
 
@@ -385,7 +393,7 @@ Contoh bentuk tampilan, bukan hasil plan nyata:
 |---|---|---|---|
 | `aws\ecs\payments\prod` | Success | 0 add, 1 change, 0 destroy | `desired_count: 2 -> 3` |
 | `azure\azure-functions\notification\prod` | No changes | Tidak ada perubahan | - |
-| `cloudflare\dns\public-site\prod` | Failed | Tidak dapat dihitung | Provider authorization error |
+| `cloudflare\workers\standalone-api\prod` | Failed | Tidak dapat dihitung | Provider authorization error |
 
 Summary terakhir gagal sehingga keseluruhan gate tetap gagal.
 
@@ -465,7 +473,7 @@ flowchart TD
 
 ### 8.5 Dependency dan partial failure
 
-Default setiap service independen. Network, IAM, DNS, atau resource shared memakai root tersendiri dan dependency DAG eksplisit.
+Default setiap service independen. Network, IAM, atau resource shared memakai root tersendiri dan dependency DAG eksplisit. Standalone Workers tidak diberi dependency wajib ke workload AWS/Azure/GCP.
 
 - Apply mengikuti urutan topologis; independent roots dapat paralel jika tidak mengorbankan urutan deployment.
 - Output producer yang berubah memasukkan consumer ke affected set meskipun file consumer tidak berubah.
@@ -497,7 +505,7 @@ Default setiap service independen. Network, IAM, DNS, atau resource shared memak
 
 **HCP Terraform -> Cloudflare**
 
-- Gunakan provider `cloudflare/cloudflare` dan API token dengan permission minimum untuk resource account/zone terkait; jangan memakai Global API Key.
+- Gunakan provider `cloudflare/cloudflare` dan API token dengan permission minimum untuk operasi Workers pada account yang disetujui; jangan memakai Global API Key. Scope Workers-only tidak memerlukan zone ID atau zone permissions.
 - Simpan token sebagai environment variable sensitif `CLOUDFLARE_API_TOKEN` di HCP workspace atau variable set dengan attachment terbatas. Jangan menyimpannya pada GitHub Terraform workflow, file `.tfvars`, state output, atau komentar.
 - Utamakan account-owned API token bila endpoint yang diperlukan kompatibel; jika tidak, gunakan user API token dengan ownership dan rotasi yang terdokumentasi.
 - Dukungan OIDC native HCP untuk Cloudflare tidak diasumsikan. Token API harus diberi TTL/rotasi/revocation dan resource scope yang jelas.
@@ -510,7 +518,7 @@ Default setiap service independen. Network, IAM, DNS, atau resource shared memak
 | AWS | IAM OIDC provider dan role terpisah untuk plan/apply; STS temporary credentials | `TFC_AWS_PROVIDER_AUTH`, `TFC_AWS_PLAN_ROLE_ARN`, `TFC_AWS_APPLY_ROLE_ARN`. |
 | Azure | Entra applications/service principals dengan RBAC minimum dan federated identity credentials per workspace/fase | `TFC_AZURE_PROVIDER_AUTH`, `TFC_AZURE_PLAN_CLIENT_ID`, `TFC_AZURE_APPLY_CLIENT_ID`; tenant/subscription dikonfigurasi sesuai provider. |
 | GCP | Workload Identity Pool/Provider dan service account terpisah untuk plan/apply, dengan claim conditions dan IAM minimum | `TFC_GCP_PROVIDER_AUTH`, `TFC_GCP_WORKLOAD_PROVIDER_NAME`, `TFC_GCP_PLAN_SERVICE_ACCOUNT_EMAIL`, `TFC_GCP_APPLY_SERVICE_ACCOUNT_EMAIL`. |
-| Cloudflare | Scoped API token untuk account/zone dan operasi yang dibutuhkan, terpisah dari kredensial AWS | `CLOUDFLARE_API_TOKEN` sebagai sensitive environment variable; account/zone ID nonrahasia; tidak diasumsikan ada federasi OIDC native HCP. |
+| Cloudflare | Scoped API token untuk operasi Workers pada account yang disetujui, terpisah dari kredensial AWS | `CLOUDFLARE_API_TOKEN` sebagai sensitive environment variable; account ID nonrahasia; tanpa zone ID atau zone permissions; tidak diasumsikan ada federasi OIDC native HCP. |
 
 Identifier role/client/account umumnya bukan secret, tetapi tetap dibatasi visibilitasnya. Azure federated credentials harus mencocokkan subject plan/apply yang berbeda; issuer untuk Terraform run adalah HCP, bukan GitHub.
 
@@ -581,7 +589,7 @@ Drift detection otomatis menggunakan Terraform plan tidak diaktifkan pada MVP ka
 
 1. Buat repository privat baru dengan branch `main`; aktifkan ruleset, mode merge, dan CODEOWNERS sesuai paket akun.
 2. Buat HCP organization/project, initial workspace bootstrap, automation teams/permissions, dan variable sets.
-3. Dengan akses admin sementara yang diaudit, buat trust OIDC AWS/Azure/GCP dan identity plan/apply; siapkan scoped API token Cloudflare pada account/zone yang disetujui.
+3. Dengan akses admin sementara yang diaudit, buat trust OIDC AWS/Azure/GCP dan identity plan/apply; siapkan scoped API token Cloudflare untuk Workers pada account yang disetujui, tanpa zone ID atau zone permissions.
 4. Buat workspace awal dan working directory mapping; nonaktifkan VCS auto-run serta workspace auto-apply.
 5. Simpan token HCP plan/deployment pada lokasi GitHub yang sesuai, siapkan queue/ledger, lalu uji dengan sandbox.
 6. Cabut credential admin sementara; simpan konfigurasi bootstrap sebagai IaC dengan state dan privilege terpisah.
@@ -612,7 +620,7 @@ Bootstrap memecahkan ketergantungan awal: workflow tidak dapat membuat trust/cre
 
 | ID | Skenario | Hasil yang diwajibkan |
 |---|---|---|
-| A-01 | Registry memuat AWS, Azure, GCP, dan Cloudflare | Laporan membedakan declared, managed, discovered-unmanaged, dan unknown, termasuk scope account/zone Cloudflare serta waktu pemeriksaan. |
+| A-01 | Registry memuat AWS, Azure, GCP, dan Cloudflare | Laporan membedakan declared, managed, discovered-unmanaged, dan unknown, termasuk scope account dan Workers Cloudflare serta waktu pemeriksaan; tidak memerlukan discovery zone. |
 | A-02 | PR mengubah satu root ECS menuju `main` | Root itu direncanakan; root independen tidak direncanakan tanpa alasan dependency. |
 | A-03 | PR mengubah shared module | Seluruh consumer transitif masuk affected set. |
 | A-04 | PR menuju branch selain `main` atau push feature branch | Tidak ada remote Terraform plan/apply. |
@@ -634,15 +642,15 @@ Bootstrap memecahkan ketergantungan awal: workflow tidak dapat membuat trust/cre
 | A-20 | Resource existing di-import | Tidak ada recreation tak disengaja; ownership state tunggal terverifikasi. |
 | A-21 | Komentar gagal, root result hilang, atau job cancelled | Gate gagal, bukan skipped/neutral yang dianggap lolos. |
 | A-22 | Discovery gagal atau scope tidak lengkap | Laporan menampilkan unknown/error, tidak menyatakan resource tidak ada. |
-| A-23 | Root Cloudflare menjalankan plan/apply dan token mengakses zone di luar scope | Run valid hanya menggunakan scope yang disetujui; akses di luar scope ditolak; token tidak terlihat pada log/komentar. |
-| A-24 | Cloudflare DNS-only dibandingkan proxied record | Konfigurasi dan diagram operasional tidak mengklaim semua trafik melewati proxy; DNS/proxy/TLS sesuai pilihan yang direview. |
+| A-23 | Root Workers menjalankan plan/apply tanpa zone ID atau zone permissions; token mencoba mengakses account di luar scope | Run valid hanya menggunakan operasi Workers pada account yang disetujui; akses di luar scope ditolak; token tidak terlihat pada log/komentar. |
+| A-24 | Endpoint workload independen AWS/Azure/GCP dan standalone Workers | Workers melayani request melalui `workers.dev` tanpa origin cloud lain; diagram tidak memiliki rantai proxy wajib; konfigurasi tidak membuat Cloudflare authoritative DNS, WAF, atau rulesets/security. |
 
 ## 13. Tahapan implementasi
 
 1. **Fondasi dan bootstrap:** keputusan platform/paket, repository baru, schema inventory, HCP organization/project, sandbox, identity, dan proteksi branch.
 2. **PR plan satu root:** bundle immutable, HCP speculative run, sanitizer/comment, stable gate, dan retry; buktikan kegagalan benar-benar memblokir merge.
 3. **Deployment setelah merge:** provenance, durable queue/ledger, exact-SHA non-speculative run, apply, dan recovery.
-4. **Multi-provider dan dependency:** root AWS/Azure/GCP/Cloudflare, scoped Cloudflare token, consumer impact analysis, dan acceptance tests lintas-root.
+4. **Multi-provider dan dependency:** root AWS/Azure/GCP dan standalone Cloudflare Workers, token Cloudflare scoped ke account, consumer impact analysis, dan acceptance tests lintas-root.
 5. **Existing infrastructure dan inventory:** discovery terukur, import bertahap, ownership, serta laporan operasional.
 
 Setiap tahap dipecah menjadi commit koheren dengan alasan perubahan. Tidak ada deploy produksi sebelum acceptance scenarios kritis dan security boundaries terbukti di sandbox.
@@ -658,9 +666,9 @@ Setiap tahap dipecah menjadi commit koheren dengan alasan perubahan. Tidak ada d
 | Auth | HCP OIDC untuk AWS/Azure/GCP; API token scoped untuk Cloudflare; API token terpisah untuk HCP | Mengurangi static cloud keys, tetapi token HCP/Cloudflare tetap memerlukan rotasi. Cloudflare tidak otomatis mendapat pemisahan izin plan/apply. |
 | Queue/ledger | Durable single-consumer, non-Git storage | Pilih storage dan hosting dispatcher dengan conditional writes, audit, serta recovery sebelum apply pipeline dibuat. |
 | Paket layanan | Belum dipilih | Konfirmasi RBAC, environment/branch protection, concurrency, retention, dan biaya. |
-| Target cloud | Belum didaftarkan | Lengkapi account/subscription/project/zone, region atau global scope, owner, dan klasifikasi environment. |
+| Target cloud | Belum didaftarkan | Lengkapi account/subscription/project, region atau global scope, owner, dan klasifikasi environment; Cloudflare Workers memakai account ID tanpa zone ID. |
 | Approval | Plan gate wajib; human review sesuai tim | Pemilik tunggal tidak bisa memenuhi kebijakan reviewer kedua tanpa collaborator; jangan membuat kebijakan yang tidak operasional. |
-| Cloudflare | Provider tersendiri; layanan dipilih sesuai kebutuhan | Tentukan account/zone, DNS, Workers, rulesets, proxy/CDN/WAF bila diperlukan, paket, dan origin; jangan mengasumsikan seluruh fitur wajib aktif. |
+| Cloudflare | Provider tersendiri untuk standalone Workers pada iteration-1 | Tentukan account, batas token Workers, endpoint `workers.dev`, dan paket; authoritative DNS, WAF, rulesets/security, dan integrasi proxy/CDN tidak termasuk scope ini. |
 | Drift scheduled | Tidak aktif | Membutuhkan perubahan requirement jika ingin plan terjadwal. |
 | Recovery objective | Belum ditentukan | Tetapkan waktu pemulihan, toleransi downtime, retensi state/artefak, dan anggaran sebelum produksi. |
 

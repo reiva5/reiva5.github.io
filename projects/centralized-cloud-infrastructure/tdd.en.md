@@ -10,7 +10,7 @@ Diagram format: Mermaid, so diagrams can be rendered directly in GitHub Markdown
 
 Centralized Cloud Infrastructure is a private repository for documenting and managing cross-cloud infrastructure using Terraform. Its primary structure follows the order **cloud provider -> service -> service instance -> environment**.
 
-GitHub serves as the source for configuration, review, and workflow orchestration. **HCP Terraform**, previously known as Terraform Cloud, runs Terraform remotely and stores state, run history, and provider authentication configuration. AWS, Azure, GCP, and **Cloudflare** are the managed providers. Cloudflare is a separate provider for services such as DNS, Workers, and rulesets/security, not an AWS service.
+GitHub serves as the source for configuration, review, and workflow orchestration. **HCP Terraform**, previously known as Terraform Cloud, runs Terraform remotely and stores state, run history, and provider authentication configuration. AWS, Azure, GCP, and **Cloudflare** are independently managed providers. In iteration-1, the Cloudflare workload focuses on standalone Workers, not an AWS service or a mandatory layer in front of AWS/Azure/GCP.
 
 Infrastructure changes must go through a PR targeting `main`. The PR produces a speculative plan for review. After the PR is merged, the deployment workflow creates a new plan from the merge commit, then applies that plan within the same HCP Terraform run.
 
@@ -20,7 +20,7 @@ This document designs a new repository. No repository creation, cloud resource c
 
 ### 2.1 Goals
 
-1. Identify the providers, accounts/subscriptions/projects/zones, services, and resources owned, along with their management status.
+1. Identify the providers, accounts/subscriptions/projects, services, and resources owned, along with their management status.
 2. Add or modify services through organized Terraform configuration.
 3. Show the impact of changes before merge and block merging when validation or planning fails.
 4. Run automatic applies only for changes that have been merged into `main`.
@@ -35,6 +35,7 @@ This document designs a new repository. No repository creation, cloud resource c
 - HCP Terraform refers to the SaaS service for remote execution and remote state, not a self-hosted Terraform Enterprise installation.
 - Initial HCP setup, cloud OIDC trust, and GitHub secrets/environments are configured through controlled bootstrapping.
 - AWS, Azure, and GCP use OIDC dynamic provider credentials. Cloudflare uses a scoped API token stored as sensitive in HCP; native OIDC support for Cloudflare is not assumed.
+- Cloudflare Workers use account scope and a standalone `workers.dev` endpoint; zone IDs and zone permissions are not required.
 - The repository pattern supports adding more providers, but not every provider necessarily supports native dynamic credentials.
 - RBAC, branch/environment protection, audit features, and run capacity must be checked against the selected GitHub and HCP Terraform plans. They are not all assumed to be available for free.
 
@@ -45,6 +46,7 @@ This document designs a new repository. No repository creation, cloud resource c
 - Automatic discovery of all resources across all clouds without scope and permission limits.
 - Automatic migration of existing resources without review and import.
 - Atomic transactions across workspaces or providers.
+- Cloudflare authoritative DNS, WAF, rulesets/security, and proxy/CDN integration in front of other cloud workloads are outside the iteration-1 scope.
 - Scheduled Terraform plans and general-purpose manual applies. Adding these features requires revising the trigger rules.
 - GitHub merge queues. If used later, the `merge_group` event must be designed and tested separately.
 
@@ -55,7 +57,7 @@ This document designs a new repository. No repository creation, cloud resource c
 | R-01 | Identify the clouds owned | Provider and cloud target registries, a list of deployment units, and discovered/managed reports with the last inspection time. |
 | R-02 | Provider and service structure | Roots are organized by provider, service, instance, and environment. |
 | R-03 | Add services | Root/module templates, deployment unit registration, workspace/identity provisioning through onboarding, then a PR. |
-| R-04 | Terraform for all clouds | Official/verified Terraform providers, controlled versions, reusable modules, and HCP remote execution. |
+| R-04 | Terraform for all clouds | Official/verified Terraform providers for AWS/Azure/GCP and standalone Cloudflare Workers, controlled versions, reusable modules, and HCP remote execution. |
 | R-05 | Plans per changed directory and PR comments | The change detector maps changes to roots and their dependencies, runs speculative plans, and publishes safe before/after summaries. |
 | R-06 | Plans only for PRs targeting `main` | Pre-merge plans run only on PR events with base `main`; no plans on feature branch pushes, PRs to other branches, or schedules. The technical deployment exception is explained in section 8. |
 | R-07 | Applies only after a PR is merged into `main` | A push to `main` must be verified as originating from a merged PR; apply uses the configuration from that merge commit. |
@@ -81,7 +83,7 @@ This document designs a new repository. No repository creation, cloud resource c
 | AWS | Example resources: ECS, IAM, VPC, and S3. |
 | Azure | Example resources: Azure Functions, Storage Account, and networking. |
 | GCP | Example resources: Cloud Run, Cloud Storage, and networking. |
-| Cloudflare | The `cloudflare/cloudflare` provider for DNS, Workers, and rulesets/security according to requirements and API/provider support. |
+| Cloudflare | The `cloudflare/cloudflare` provider for account-scoped standalone Workers, independent of AWS/Azure/GCP workloads. |
 | Inventory reporter | Combines the registry, managed resources, and limited discovery results; not a replacement for state. |
 
 ### 4.2 Component/control plane diagram
@@ -124,7 +126,7 @@ flowchart LR
 
     subgraph Cloudflare["Cloudflare"]
         CFAPI["Cloudflare API<br/>scoped API token"]
-        CFResources["DNS - Workers - rulesets"]
+        CFResources["Standalone Workers<br/>account scope"]
     end
 
     Owner --> Repo
@@ -155,23 +157,20 @@ flowchart LR
 
 This diagram represents the management plane. It does not mean that application traffic must pass through GitHub or HCP Terraform.
 
-### 4.3 Cloudflare's position in the data plane
+### 4.3 Independent workload endpoints in the data plane
 
-Cloudflare is managed as a separate provider, but not all its services must be used. DNS can be used without proxy/CDN; proxy, cache, WAF, and Workers are enabled only according to requirements and service plans. Terraform configures Cloudflare resources; it does not become part of the user traffic path.
+AWS, Azure, GCP, and Cloudflare each provide their own workload endpoints. Standalone Workers serve requests through a `workers.dev` endpoint without requiring an origin in another cloud. Terraform configures each provider's resources; it does not become part of the user traffic path.
 
 ```mermaid
 flowchart LR
     User["Application user"]
-    DNS["Cloudflare authoritative DNS"]
-    Edge["Cloudflare edge<br/>proxy - cache - WAF<br/>optional: Workers"]
-    User -.->|"DNS resolution through a resolver"| DNS
-    User -->|"HTTP/HTTPS if proxied"| Edge
-    Edge -->|"selected origin"| AWSOrigin["AWS endpoint"]
-    Edge -->|"selected origin"| AzureOrigin["Azure endpoint"]
-    Edge -->|"selected origin"| GCPOrigin["GCP endpoint"]
+    User -->|"HTTP/HTTPS"| AWSWorkload["AWS endpoint<br/>ECS"]
+    User -->|"HTTP/HTTPS"| AzureWorkload["Azure endpoint<br/>Azure Functions"]
+    User -->|"HTTP/HTTPS"| GCPWorkload["GCP endpoint<br/>Cloud Run"]
+    User -->|"HTTP/HTTPS"| CFWorker["Cloudflare endpoint<br/>standalone Workers - workers.dev"]
 ```
 
-AWS/Azure/GCP origins are alternatives, not a requirement to use all three simultaneously. With DNS-only records, clients access the origin directly without passing through the Cloudflare proxy. Further design must determine domains/zones, DNS delegation, each record's proxy status, TLS, caching, origin protection, egress costs, and prevention of origin bypass. Workers can also serve requests without another cloud origin.
+The four endpoints are independent alternatives, not a traffic chain or a requirement to use them all simultaneously. Cloudflare is not required as a proxy/CDN for AWS/Azure/GCP. Cloudflare authoritative DNS, WAF, and rulesets/security are not configured in iteration-1; standalone Workers require no zone ID or zone permissions.
 
 ## 5. Repository structure and deployment units
 
@@ -202,14 +201,8 @@ centralized-cloud-infrastructure
 |       `-- reporting
 |           `-- prod
 |-- cloudflare
-|   |-- dns
-|   |   `-- public-site
-|   |       `-- prod
-|   |-- workers
-|   |   `-- edge-api
-|   |       `-- prod
-|   `-- rulesets
-|       `-- public-site
+|   `-- workers
+|       `-- standalone-api
 |           `-- prod
 |-- modules
 |   |-- aws
@@ -224,7 +217,7 @@ centralized-cloud-infrastructure
 
 Example root: `aws\ecs\payments\prod`.
 
-Cloudflare example: `cloudflare\dns\public-site\prod`, with workspace `cci-cloudflare-dns-public-site-prod`. A Cloudflare target refers to an account and, for zone-scoped resources, a zone ID; account-scoped resources such as Workers are not forced to have a zone. Global services use region `global` or an explicitly inapplicable region attribute.
+Cloudflare example: `cloudflare\workers\standalone-api\prod`, with workspace `cci-cloudflare-workers-standalone-api-prod`. A Cloudflare target refers to an account ID for standalone Workers; no zone ID or zone permissions are required. Global services use region `global` or an explicitly inapplicable region attribute.
 
 Each root contains `main.tf`, `providers.tf`, `versions.tf`, `variables.tf`, `outputs.tf`, `.terraform.lock.hcl`, and a brief README. Nonsecret variables may be stored as versioned configuration; secrets must not enter the repository.
 
@@ -254,9 +247,24 @@ deployments:
       - aws-vpc-core-prod
     module_dependencies:
       - 'modules\aws\ecs'
+  - id: cloudflare-workers-standalone-api-prod
+    root: 'cloudflare\workers\standalone-api\prod'
+    provider: cloudflare
+    service: workers
+    environment: prod
+    target_ref: cloudflare-production
+    region: global
+    hcp_workspace: cci-cloudflare-workers-standalone-api-prod
+    lifecycle: active
+    owner: platform
+    depends_on: []
+    module_dependencies:
+      - 'modules\cloudflare\workers'
 ```
 
 The example uses Windows documentation path notation. The implementation consistently normalizes Git paths to the Git/API format before matching.
+
+The `cloudflare-production` target maps to an approved account ID; the `workers.dev` endpoint requires no zone ID or dependency on another cloud root.
 
 The schema must validate unique IDs, safe roots, unique workspaces, known targets, known dependencies, and the absence of cycles. Roots, workspaces, targets, and identity bindings must not be freely selectable through PR input.
 
@@ -276,7 +284,7 @@ Terraform does not automatically know about all services previously created thro
 
 | Inventory layer | Source | Meaning |
 |---|---|---|
-| Declared targets | Provider and account/subscription/project/zone registries | Clouds known to and allowed for the project. |
+| Declared targets | Provider and account/subscription/project registries | Clouds known to and allowed for the project; Cloudflare uses account scope. |
 | Desired configuration | Terraform roots and deployment registry | Resources intended to be managed, including those not yet successfully created. |
 | Managed actual | HCP state and last apply status | Resources recorded in state; may not reflect the latest live conditions. |
 | Discovered actual | Cloud-native inventory APIs with read access | Resources visible within a particular scope and at a particular inspection time. |
@@ -285,7 +293,7 @@ Minimum report columns: provider, target alias/ID, service, resource ID, region,
 
 Example statuses: `managed`, `discovered-unmanaged`, `declared-not-applied`, `missing-or-inaccessible`, and `unknown`. Absence from discovery results does not immediately mean a resource has been deleted.
 
-Initial discovery uses AWS Resource Explorer or relevant per-service inventories, Azure Resource Graph, GCP Cloud Asset Inventory, and Cloudflare APIs for accounts/zones and services such as DNS, Workers, and rulesets. API coverage, regions, resource types, permissions, and pagination must be reported; do not claim the results are a complete list without evidence of coverage.
+Initial discovery uses AWS Resource Explorer or relevant per-service inventories, Azure Resource Graph, GCP Cloud Asset Inventory, and Cloudflare APIs for Workers in approved accounts. Cloudflare discovery requires neither zone listing nor zone permissions. API coverage, regions, resource types, permissions, and pagination must be reported; do not claim the results are a complete list without evidence of coverage.
 
 Read-only inventory may run on a schedule/manually without executing Terraform plan/apply. Its identities are separate: GitHub OIDC to read-only discovery roles in AWS/Azure/GCP, and a dedicated read-only scoped API token for Cloudflare inventory. If the Cloudflare reporter runs in GitHub, the inventory token is available only in a protected job/environment through an approved secret store; do not use Terraform's write token. This differs from HCP OIDC for Terraform runs. Access to inventory data and artifacts is restricted.
 
@@ -385,7 +393,7 @@ Example display format, not actual plan results:
 |---|---|---|---|
 | `aws\ecs\payments\prod` | Success | 0 add, 1 change, 0 destroy | `desired_count: 2 -> 3` |
 | `azure\azure-functions\notification\prod` | No changes | No changes | - |
-| `cloudflare\dns\public-site\prod` | Failed | Cannot be calculated | Provider authorization error |
+| `cloudflare\workers\standalone-api\prod` | Failed | Cannot be calculated | Provider authorization error |
 
 The last summary fails, so the overall gate remains failed.
 
@@ -465,7 +473,7 @@ flowchart TD
 
 ### 8.5 Dependencies and partial failures
 
-Each service is independent by default. Networks, IAM, DNS, or shared resources use their own roots and an explicit dependency DAG.
+Each service is independent by default. Networks, IAM, or shared resources use their own roots and an explicit dependency DAG. Standalone Workers have no mandatory dependency on AWS/Azure/GCP workloads.
 
 - Applies follow topological order; independent roots may run in parallel if deployment ordering is not compromised.
 - Changed producer outputs add consumers to the affected set even if consumer files have not changed.
@@ -497,7 +505,7 @@ Each service is independent by default. Networks, IAM, DNS, or shared resources 
 
 **HCP Terraform -> Cloudflare**
 
-- Use the `cloudflare/cloudflare` provider and an API token with minimum permissions for the relevant account/zone resources; do not use the Global API Key.
+- Use the `cloudflare/cloudflare` provider and an API token with minimum permissions for Workers operations in the approved account; do not use the Global API Key. Workers-only scope requires no zone ID or zone permissions.
 - Store the token as the sensitive environment variable `CLOUDFLARE_API_TOKEN` in the HCP workspace or a variable set with restricted attachments. Do not store it in GitHub Terraform workflows, `.tfvars` files, state outputs, or comments.
 - Prefer account-owned API tokens if the required endpoints are compatible; otherwise, use a user API token with documented ownership and rotation.
 - Native HCP OIDC support for Cloudflare is not assumed. API tokens must have clear TTL/rotation/revocation and resource scope.
@@ -510,7 +518,7 @@ Each service is independent by default. Networks, IAM, DNS, or shared resources 
 | AWS | IAM OIDC provider and separate plan/apply roles; STS temporary credentials | `TFC_AWS_PROVIDER_AUTH`, `TFC_AWS_PLAN_ROLE_ARN`, `TFC_AWS_APPLY_ROLE_ARN`. |
 | Azure | Entra applications/service principals with minimum RBAC and federated identity credentials per workspace/phase | `TFC_AZURE_PROVIDER_AUTH`, `TFC_AZURE_PLAN_CLIENT_ID`, `TFC_AZURE_APPLY_CLIENT_ID`; tenant/subscription configured according to the provider. |
 | GCP | Workload Identity Pool/Provider and separate plan/apply service accounts, with claim conditions and minimum IAM | `TFC_GCP_PROVIDER_AUTH`, `TFC_GCP_WORKLOAD_PROVIDER_NAME`, `TFC_GCP_PLAN_SERVICE_ACCOUNT_EMAIL`, `TFC_GCP_APPLY_SERVICE_ACCOUNT_EMAIL`. |
-| Cloudflare | Scoped API token for the required accounts/zones and operations, separate from AWS credentials | `CLOUDFLARE_API_TOKEN` as a sensitive environment variable; nonsecret account/zone IDs; native HCP OIDC federation is not assumed. |
+| Cloudflare | Scoped API token for Workers operations in the approved account, separate from AWS credentials | `CLOUDFLARE_API_TOKEN` as a sensitive environment variable; nonsecret account ID; no zone ID or zone permissions; native HCP OIDC federation is not assumed. |
 
 Role/client/account identifiers are generally not secrets, but their visibility is still restricted. Azure federated credentials must match the different plan/apply subjects; the issuer for Terraform runs is HCP, not GitHub.
 
@@ -581,7 +589,7 @@ Automatic drift detection using Terraform plans is not enabled in the MVP becaus
 
 1. Create a new private repository with branch `main`; enable rulesets, merge mode, and CODEOWNERS according to the account plan.
 2. Create the HCP organization/project, initial bootstrap workspace, automation teams/permissions, and variable sets.
-3. Using audited temporary admin access, create AWS/Azure/GCP OIDC trust and plan/apply identities; prepare scoped Cloudflare API tokens for approved accounts/zones.
+3. Using audited temporary admin access, create AWS/Azure/GCP OIDC trust and plan/apply identities; prepare scoped Cloudflare API tokens for Workers in approved accounts, without zone IDs or zone permissions.
 4. Create initial workspaces and working directory mappings; disable VCS auto-run and workspace auto-apply.
 5. Store HCP plan/deployment tokens in the appropriate GitHub locations, prepare the queue/ledger, then test in a sandbox.
 6. Revoke temporary admin credentials; store bootstrap configuration as IaC with separate state and privileges.
@@ -612,7 +620,7 @@ Bootstrapping resolves the initial dependency: workflows cannot create the trust
 
 | ID | Scenario | Required outcome |
 |---|---|---|
-| A-01 | The registry includes AWS, Azure, GCP, and Cloudflare | Reports distinguish declared, managed, discovered-unmanaged, and unknown, including Cloudflare account/zone scope and inspection time. |
+| A-01 | The registry includes AWS, Azure, GCP, and Cloudflare | Reports distinguish declared, managed, discovered-unmanaged, and unknown, including Cloudflare account and Workers scope and inspection time; no zone discovery is required. |
 | A-02 | A PR targeting `main` changes one ECS root | That root is planned; independent roots are not planned without a dependency reason. |
 | A-03 | A PR changes a shared module | All transitive consumers enter the affected set. |
 | A-04 | A PR targets a branch other than `main`, or a feature branch is pushed | No remote Terraform plan/apply. |
@@ -634,15 +642,15 @@ Bootstrapping resolves the initial dependency: workflows cannot create the trust
 | A-20 | Existing resources are imported | No unintended recreation; single-state ownership is verified. |
 | A-21 | A comment fails, a root result is missing, or a job is cancelled | The gate fails, rather than returning skipped/neutral that is considered passing. |
 | A-22 | Discovery fails or scope is incomplete | Reports show unknown/error, not that resources do not exist. |
-| A-23 | A Cloudflare root runs plan/apply and its token accesses a zone outside its scope | Valid runs use only the approved scope; out-of-scope access is denied; the token is not visible in logs/comments. |
-| A-24 | Cloudflare DNS-only versus proxied records | Configuration and operational diagrams do not claim that all traffic passes through the proxy; DNS/proxy/TLS match the reviewed choices. |
+| A-23 | A Workers root runs plan/apply without zone IDs or zone permissions; its token attempts to access an out-of-scope account | Valid runs use only Workers operations in the approved account; out-of-scope access is denied; the token is not visible in logs/comments. |
+| A-24 | Independent AWS/Azure/GCP workload endpoints and standalone Workers | Workers serve requests through `workers.dev` without another cloud origin; diagrams have no mandatory proxy chain; configuration creates no Cloudflare authoritative DNS, WAF, or rulesets/security. |
 
 ## 13. Implementation phases
 
 1. **Foundation and bootstrap:** platform/plan decisions, new repository, inventory schema, HCP organization/project, sandbox, identities, and branch protection.
 2. **Single-root PR plan:** immutable bundle, HCP speculative run, sanitizer/comment, stable gate, and retries; prove that failures genuinely block merging.
 3. **Post-merge deployment:** provenance, durable queue/ledger, exact-SHA non-speculative run, apply, and recovery.
-4. **Multi-provider and dependencies:** AWS/Azure/GCP/Cloudflare roots, scoped Cloudflare tokens, consumer impact analysis, and cross-root acceptance tests.
+4. **Multi-provider and dependencies:** AWS/Azure/GCP and standalone Cloudflare Workers roots, account-scoped Cloudflare tokens, consumer impact analysis, and cross-root acceptance tests.
 5. **Existing infrastructure and inventory:** measured discovery, staged imports, ownership, and operational reports.
 
 Each phase is split into coherent commits with reasons for the changes. No production deployment occurs before critical acceptance scenarios and security boundaries are proven in a sandbox.
@@ -658,9 +666,9 @@ Each phase is split into coherent commits with reasons for the changes. No produ
 | Auth | HCP OIDC for AWS/Azure/GCP; scoped API tokens for Cloudflare; separate API tokens for HCP | Reduces static cloud keys, but HCP/Cloudflare tokens still need rotation. Cloudflare does not automatically receive separate plan/apply permissions. |
 | Queue/ledger | Durable single-consumer, non-Git storage | Choose storage and dispatcher hosting with conditional writes, audit, and recovery before building the apply pipeline. |
 | Service plans | Not yet selected | Confirm RBAC, environment/branch protection, concurrency, retention, and costs. |
-| Cloud targets | Not yet registered | Complete accounts/subscriptions/projects/zones, regions or global scope, owners, and environment classifications. |
+| Cloud targets | Not yet registered | Complete accounts/subscriptions/projects, regions or global scope, owners, and environment classifications; Cloudflare Workers use account IDs without zone IDs. |
 | Approval | Mandatory plan gate; human review appropriate to the team | A sole owner cannot satisfy a second-reviewer policy without a collaborator; do not create an unworkable policy. |
-| Cloudflare | Separate provider; services selected according to requirements | Determine accounts/zones, DNS, Workers, rulesets, proxy/CDN/WAF if needed, plans, and origins; do not assume all features must be enabled. |
+| Cloudflare | Separate provider for standalone Workers in iteration-1 | Determine accounts, Workers token limits, `workers.dev` endpoints, and service plans; authoritative DNS, WAF, rulesets/security, and proxy/CDN integration are outside this scope. |
 | Scheduled drift | Disabled | Requires changing the requirements if scheduled plans are desired. |
 | Recovery objective | Not yet determined | Define recovery time, downtime tolerance, state/artifact retention, and budget before production. |
 

@@ -92,6 +92,10 @@ describe("Project page behavior", () => {
       title: "Project", description: "Projects", breadcrumb: "project", body: renderProjectCards(projects),
     }));
     expect(projects[0].status).toBe("Draft");
+    expect(projects[0].summary).toContain("standalone Cloudflare Workers");
+    expect(projects[0].technologies).toEqual([
+      "Terraform", "HCP Terraform", "GitHub Actions", "AWS", "Azure", "GCP", "Cloudflare Workers",
+    ]);
     expect(document.querySelector(".project-status-draft").textContent).toBe("Draft");
     expect(document.querySelector('a[aria-current="page"]').getAttribute("href")).toBe("./project.html");
     expect(Array.from(document.querySelectorAll("script"), (script) => script.getAttribute("src")))
@@ -103,7 +107,7 @@ describe("Project page behavior", () => {
     expect(document.querySelector(".skip-link").getAttribute("href")).toBe("#main-content");
   });
 
-  it("renders the complete approved Cloudflare TDD, retaining every section and all four diagrams", async () => {
+  it("renders the complete four-provider TDD, retaining every section and all four diagrams", async () => {
     const source = readFileSync(new URL("../../projects/centralized-cloud-infrastructure/tdd.md", import.meta.url), "utf8");
     const { html, toc, diagramCount } = await renderDocument(source, async (text, index) => `./diagrams/diagram-${index}.svg`);
     const document = documentFor(html + toc);
@@ -128,12 +132,58 @@ describe("Project page behavior", () => {
     for (const selector of ["h2", "h3", "h4", "h5", "h6", "table", ".document-toc li", "pre"]) {
       expect(documents[1].querySelectorAll(selector).length).toBe(documents[0].querySelectorAll(selector).length);
     }
-    expect(sources[1].match(/\b(?:FR|NFR|AC)-\d+\b/g)).toEqual(sources[0].match(/\b(?:FR|NFR|AC)-\d+\b/g));
+    const identifiers = (source) => Array.from(source.matchAll(/^\| ((?:R|A)-\d+) \|/gm), (match) => match[1]);
+    expect(identifiers(sources[0])).toEqual([
+      ...Array.from({ length: 11 }, (_, index) => `R-${String(index + 1).padStart(2, "0")}`),
+      ...Array.from({ length: 24 }, (_, index) => `A-${String(index + 1).padStart(2, "0")}`),
+    ]);
+    expect(identifiers(sources[1])).toEqual(identifiers(sources[0]));
     expect(documents[1].body.textContent).toContain("Cloudflare");
     expect(documents[1].body.textContent).not.toContain("CloudFront");
     for (const link of documents[1].querySelectorAll(".document-toc a")) {
       expect(documents[1].querySelector(link.getAttribute("href"))).not.toBeNull();
     }
+  });
+
+  it.each(["tdd.md", "tdd.en.md"])("keeps %s scoped to account-only Workers with independent workload endpoints", async (name) => {
+    const source = readFileSync(new URL(`../../projects/centralized-cloud-infrastructure/${name}`, import.meta.url), "utf8");
+    const diagrams = [];
+    const { html } = await renderDocument(source, async (text, index) => {
+      diagrams.push(text);
+      return `./diagrams/diagram-${index}.svg`;
+    });
+    expect(diagrams).toHaveLength(4);
+    expect(diagrams[0]).toContain('subgraph Cloudflare["Cloudflare"]');
+    expect(diagrams[0]).toContain('Runner -->|"Terraform Cloudflare provider<br/>API token authentication"| CFAPI');
+    expect(diagrams[0]).toContain('CFResources["Standalone Workers<br/>');
+    expect(diagrams[0]).not.toMatch(/DNS|WAF|rulesets/);
+    const endpoints = [
+      'AWSWorkload["AWS endpoint<br/>ECS"]',
+      'AzureWorkload["Azure endpoint<br/>Azure Functions"]',
+      'GCPWorkload["GCP endpoint<br/>Cloud Run"]',
+      'CFWorker["Cloudflare endpoint<br/>standalone Workers - workers.dev"]',
+    ];
+    expect(diagrams[1].split("\n").filter((line) => line.includes("-->")).map((line) => line.trim()))
+      .toEqual(endpoints.map((endpoint) => `User -->|"HTTP/HTTPS"| ${endpoint}`));
+    expect(diagrams[1]).not.toMatch(/DNS|WAF|rulesets|Edge|Origin/);
+    const document = documentFor(html);
+    const examples = Array.from(document.querySelectorAll("pre code"), (code) => code.textContent);
+    const registry = examples.find((text) => text.startsWith("deployments:"));
+    expect(registry).toContain("root: 'cloudflare\\workers\\standalone-api\\prod'");
+    expect(registry).toContain("hcp_workspace: cci-cloudflare-workers-standalone-api-prod");
+    expect(registry).toContain("target_ref: cloudflare-production");
+    expect(registry).toContain("depends_on: []");
+    expect(registry).toContain("region: global");
+    expect(examples.join("\n")).not.toMatch(/zone_id|cloudflare\\dns|cloudflare\\rulesets/);
+    const rows = Array.from(document.querySelectorAll("tr"), (row) => row.textContent.trim());
+    for (const id of ["A-01", "A-23", "A-24"]) {
+      expect(rows.find((row) => row.startsWith(id))).toContain("Workers");
+    }
+    expect(rows.find((row) => row.startsWith("A-23"))).toContain("zone permissions");
+    expect(rows.find((row) => row.startsWith("A-24"))).toContain("workers.dev");
+    expect(rows.find((row) => row.startsWith("Cloudflare") && row.includes("CLOUDFLARE_API_TOKEN")))
+      .toMatch(/account ID.*zone ID.*zone permissions/);
+    expect(source).not.toMatch(/account\/zone|accounts\/zones|project\/zone|projects\/zones|DNS-only|proxied record/);
   });
 });
 
